@@ -24,7 +24,7 @@ import (
 	"github.com/spf13/nitro"
 )
 
-// Build command processor and execute
+// Execute: Build command processor and run user commands
 func Execute() {
 	cmd := buildCommand()
 
