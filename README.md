@@ -27,3 +27,49 @@ This means no `init()` functions, no global variables.
 
 Test code should not need to string-match against `error` string values; that is, the interpretation
 of `error` values by code should be through something other than what `Error()` is returning.
+
+## Code style
+
+Get used to running `go fmt` on the code all the time. It has to be run before checkin,
+and I should probably just wire it up so it's done on file save. It's totally unfortunate
+that `go fmt` only writes LF files, this just doesn't work well with typical Windows Git
+behavior. Maybe this means all Go-only Git projects should be checked out with LF line endings
+even on Windows?
+
+OK, so I bit the bullet, and new Go projects should have these files in them from the start:
+
+`.gitattributes` file that makes .go files checked out with LF line endings, because the `go fmt`
+tool writes them that way.
+
+```
+# Text files have auto line endings
+* text = auto
+
+# Go source files always have LF line endings
+*.go text eol=lf
+```
+
+`.editorconfig` that makes .go files have hard tabs in them and LF line endings, because the `go
+fmt` tool writes them that way. It also says indent_size = 8, but we can ignore that part and we
+want our files viewed with 4-space tabs.
+
+```
+root = true
+
+[*]
+indent_style = space
+indent_size = 4
+tab_width = 4
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+[*.go]
+indent_style = tab
+end_of_line = lf
+```
+
+`.gitignore` that ignores `vendor/` because we eventually will use `go vendor` or `mage`.
+
+```
+/vendor/
+```

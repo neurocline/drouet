@@ -14,24 +14,24 @@
 package commands
 
 import (
-    "fmt"
+	"fmt"
 
-    "github.com/spf13/cobra"
+	"github.com/spf13/cobra"
 )
 
 // Build "hugo config" command.
 func buildHugoConfigCmd() *cobra.Command {
-    cmd := &cobra.Command {
-        Use:   "config",
-        Short: "Print the site configuration",
-        Long:  `Print the site configuration, both default and custom settings.`,
-        RunE: config,
-    }
+	cmd := &cobra.Command{
+		Use:   "config",
+		Short: "Print the site configuration",
+		Long:  `Print the site configuration, both default and custom settings.`,
+		RunE:  config,
+	}
 
-    return cmd
+	return cmd
 }
 
 func config(cmd *cobra.Command, args []string) error {
-    fmt.Println("hugo config - print config goes here")
-    return nil
+	fmt.Println("hugo config - print config goes here")
+	return nil
 }

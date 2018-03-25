@@ -14,36 +14,36 @@
 package commands
 
 import (
-    "fmt"
+	"fmt"
 
-    "github.com/spf13/cobra"
+	"github.com/spf13/cobra"
 )
 
 // Build "hugo benchmark" command.
 func buildHugoBenchmarkCmd() *cobra.Command {
-    cmd := &cobra.Command{
-    Use:   "benchmark",
-    Short: "Benchmark Hugo by building a site a number of times.",
-    Long: `Hugo can build a site many times over and analyze the running process
+	cmd := &cobra.Command{
+		Use:   "benchmark",
+		Short: "Benchmark Hugo by building a site a number of times.",
+		Long: `Hugo can build a site many times over and analyze the running process
 creating a benchmark.`,
-    RunE: benchmark,
-    }
+		RunE: benchmark,
+	}
 
-    // Add flags shared by builders: "hugo", "hugo server", "hugo benchmark"
-    initHugoBuilderFlags(cmd)
+	// Add flags shared by builders: "hugo", "hugo server", "hugo benchmark"
+	initHugoBuilderFlags(cmd)
 
-    // Add flags shared by benchmarking: "hugo", "hugo benchmark"
-    initHugoBenchmarkFlags(cmd)
+	// Add flags shared by benchmarking: "hugo", "hugo benchmark"
+	initHugoBenchmarkFlags(cmd)
 
-    // Add flags unique to "hugo benchmark"
-    cmd.Flags().String("cpuprofile", "", "path/filename for the CPU profile file")
-    cmd.Flags().String("memprofile", "", "path/filename for the memory profile file")
-    cmd.Flags().IntP("count", "n", 13, "number of times to build the site")
+	// Add flags unique to "hugo benchmark"
+	cmd.Flags().String("cpuprofile", "", "path/filename for the CPU profile file")
+	cmd.Flags().String("memprofile", "", "path/filename for the memory profile file")
+	cmd.Flags().IntP("count", "n", 13, "number of times to build the site")
 
-    return cmd
+	return cmd
 }
 
 func benchmark(cmd *cobra.Command, args []string) error {
-    fmt.Println("hugo benchmark - benchmark site goes here")
-    return nil
+	fmt.Println("hugo benchmark - benchmark site goes here")
+	return nil
 }

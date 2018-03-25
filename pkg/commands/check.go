@@ -14,23 +14,23 @@
 package commands
 
 import (
-    "fmt"
+	"fmt"
 
-    "github.com/spf13/cobra"
+	"github.com/spf13/cobra"
 )
 
 // Build "hugo check" command.
 func buildHugoCheckCmd() *cobra.Command {
-    cmd := &cobra.Command{
-    Use:   "check",
-    Short: "Contains some verification checks",
-    RunE: benchmark,
-    }
+	cmd := &cobra.Command{
+		Use:   "check",
+		Short: "Contains some verification checks",
+		RunE:  benchmark,
+	}
 
-    return cmd
+	return cmd
 }
 
 func check(cmd *cobra.Command, args []string) error {
-    fmt.Println("hugo check - hugo selftest goes here")
-    return nil
+	fmt.Println("hugo check - hugo selftest goes here")
+	return nil
 }
