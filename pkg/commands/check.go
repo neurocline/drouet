@@ -24,13 +24,15 @@ func buildHugoCheckCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "check",
 		Short: "Contains some verification checks",
-		RunE:  benchmark,
+		RunE:  check,
 	}
 
 	return cmd
 }
 
+// ----------------------------------------------------------------------------------------------
+
 func check(cmd *cobra.Command, args []string) error {
-	fmt.Println("hugo check - hugo selftest goes here")
+	fmt.Println("hugo check - hugo check code goes here")
 	return nil
 }

@@ -43,6 +43,8 @@ creating a benchmark.`,
 	return cmd
 }
 
+// ----------------------------------------------------------------------------------------------
+
 func benchmark(cmd *cobra.Command, args []string) error {
 	fmt.Println("hugo benchmark - benchmark site goes here")
 	return nil

@@ -19,13 +19,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// Build "hugo config" command.
-func buildHugoConfigCmd() *cobra.Command {
+// Build "hugo version" command.
+func buildHugoVersionCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "config",
-		Short: "Print the site configuration",
-		Long:  `Print the site configuration, both default and custom settings.`,
-		RunE:  config,
+		Use:   "version",
+		Short: "Print the version number of Hugo",
+		Long:  `All software has versions. This is Hugo's.`,
+		RunE:  version,
 	}
 
 	return cmd
@@ -33,7 +33,7 @@ func buildHugoConfigCmd() *cobra.Command {
 
 // ----------------------------------------------------------------------------------------------
 
-func config(cmd *cobra.Command, args []string) error {
-	fmt.Println("hugo config - print config goes here")
+func version(cmd *cobra.Command, args []string) error {
+	fmt.Println("hugo version - hugo version code goes here")
 	return nil
 }

@@ -83,6 +83,8 @@ to use YAML for the front matter.`,
 	return cmd
 }
 
+// ----------------------------------------------------------------------------------------------
+
 func convert(cmd *cobra.Command, args []string) error {
 	fmt.Println("hugo convert - hugo convert goes here")
 	return nil

@@ -157,6 +157,8 @@ See https://help.farbox.com/pygments.html for preview of available styles`,
 	return g
 }
 
+// ----------------------------------------------------------------------------------------------
+
 func genAutocomplete(cmd *cobra.Command, args []string) error {
 	fmt.Println("hugo gen autocomplete - hugo gen autocomplete code goes here")
 	return nil
