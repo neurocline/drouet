@@ -15,8 +15,13 @@ package commands
 
 import (
 	"fmt"
+	"runtime"
+	"strings"
+
+	"github.com/neurocline/drouet/pkg/core"
 
 	"github.com/spf13/cobra"
+	jww "github.com/spf13/jwalterweatherman"
 )
 
 // Build "hugo version" command.
@@ -34,6 +39,20 @@ func buildHugoVersionCmd(h *hugoCmd) *cobra.Command {
 // ----------------------------------------------------------------------------------------------
 
 func (h *hugoCmd) version(cmd *cobra.Command, args []string) error {
-	fmt.Println("hugo version - hugo version code goes here")
+
+	os_arch_date := fmt.Sprintf("%s/%s BuildDate: %s", runtime.GOOS, runtime.GOARCH, core.BuildDate)
+	vers := fmt.Sprintf("%s", core.CurrentHugoVersion())
+	if core.CommitHash != "" {
+		vers = fmt.Sprintf("%s-%s", vers, strings.ToUpper(core.CommitHash))
+	}
+
+	jww.FEEDBACK.Printf("Hugo Static Site Generator v%s %s\n", vers, os_arch_date)
+
+	//if hugolib.CommitHash == "" {
+	//	jww.FEEDBACK.Printf("Hugo Static Site Generator v%s %s/%s BuildDate: %s\n", helpers.CurrentHugoVersion, runtime.GOOS, runtime.GOARCH, hugolib.BuildDate)
+	//} else {
+	//	jww.FEEDBACK.Printf("Hugo Static Site Generator v%s-%s %s/%s BuildDate: %s\n", helpers.CurrentHugoVersion, strings.ToUpper(hugolib.CommitHash), runtime.GOOS, runtime.GOARCH, hugolib.BuildDate)
+	//}
+
 	return nil
 }

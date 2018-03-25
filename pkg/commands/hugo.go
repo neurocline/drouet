@@ -24,6 +24,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/nitro"
+	"github.com/spf13/pflag"
 )
 
 type hugoCmd struct {
@@ -42,7 +43,8 @@ func Execute() {
 	hugo := &hugoCmd{core.NewHugo()}
 	cmd := buildCommand(hugo)
 
-	// Run the command processor
+	// Run the command processor; show usage message if there is an error
+	// (TBD clean this a bit, full usage is very long for some commands)
 	if c, err := cmd.ExecuteC(); err != nil {
 		c.Println("")
 		c.Println(c.UsageString())
@@ -110,9 +112,19 @@ Complete documentation is available at http://gohugo.io/.`,
 	// Add flags unique to the "hugo" command
 	cmd.Flags().BoolP("watch", "w", false, "watch filesystem for changes and recreate as needed")
 
+	// Update flags to latest convention
+	// (TBD maybe we should be setting more aliases?)
+	cmd.SetGlobalNormalizationFunc(normalizeHugoFlags)
+
+	// We don't want usage spit out all the time (but we end up doing this
+	// ourselves, so I'm not sure exactly what this is for)
+	cmd.SilenceUsage = true
+
 	//hugoCmdV = cmd
 	return cmd
 }
+
+// ----------------------------------------------------------------------------------------------
 
 // Add flags shared by builders: "hugo", "hugo server", "hugo benchmark"
 func initHugoBuilderFlags(cmd *cobra.Command) {
@@ -159,6 +171,20 @@ func initHugoBuilderFlags(cmd *cobra.Command) {
 // Add flags shared by benchmarking: "hugo", "hugo benchmark"
 func initHugoBenchmarkFlags(cmd *cobra.Command) {
 	cmd.Flags().Bool("renderToMemory", false, "render to memory (only useful for benchmark testing)")
+}
+
+// normalizeHugoFlags facilitates transitions of Hugo command-line flags,
+// e.g. --baseUrl to --baseURL, --uglyUrls to --uglyURLs
+func normalizeHugoFlags(f *pflag.FlagSet, name string) pflag.NormalizedName {
+	switch name {
+	case "baseUrl":
+		name = "baseURL"
+		break
+	case "uglyUrls":
+		name = "uglyURLs"
+		break
+	}
+	return pflag.NormalizedName(name)
 }
 
 // ----------------------------------------------------------------------------------------------

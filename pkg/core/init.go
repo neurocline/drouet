@@ -21,6 +21,26 @@ import (
 	jww "github.com/spf13/jwalterweatherman"
 )
 
+// NewHugo creates an instance of the top-level state for Hugo operation.
+// Many fields of this are refined after initial creation (e.g. logging
+// is immediately initialized but only at a critical level and could be
+// updated once config is parsed).
+func NewHugo() *Hugo {
+
+	// Create an initial logger (this will be replaced once config is parsed)
+	startupLogger := jww.NewNotepad(jww.LevelError, jww.LevelError, os.Stdout, ioutil.Discard, "", 0)
+
+	return &Hugo{
+		Logger: startupLogger,
+	}
+}
+
+type Hugo struct {
+	Logger *jww.Notepad
+}
+
+// ----------------------------------------------------------------------------------------------
+
 // Init does global-level init like setting up logging.
 // If Init has an error, it exits with an error status.
 func Init() {
@@ -47,23 +67,3 @@ func (h *Hugo) Shutdown() {
 		os.Exit(-1)
 	}
 }
-
-// NewHugo creates an instance of the top-level state for Hugo operation.
-// Many fields of this are refined after initial creation (e.g. logging
-// is immediately initialized but only at a critical level and could be
-// updated once config is parsed).
-func NewHugo() *Hugo {
-
-	// Create an initial logger (this will be replaced once config is parsed)
-	startupLogger := jww.NewNotepad(jww.LevelError, jww.LevelError, os.Stdout, ioutil.Discard, "", 0)
-
-	return &Hugo{
-		Logger: startupLogger,
-	}
-}
-
-type Hugo struct {
-	Logger *jww.Notepad
-}
-
-// ----------------------------------------------------------------------------------------------
