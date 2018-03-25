@@ -73,3 +73,14 @@ end_of_line = lf
 ```
 /vendor/
 ```
+
+## Documentation
+
+The main README.md should always be a minimal and sufficient guide to using the project.
+Don't take the current state of this README.md as the example - right now, this contains
+notes about work-in-progress, and all of that will be moved to a better place "soon".
+
+It's too bad that there are so many files that want to go in the root of the project. The
+Hugo project has 20 files and directories that need to be in the root, which pushes down
+the readable documentation off the screen. I introduced a top-level `pkg` directory to
+hold all Hugo source, but this won't be enough.

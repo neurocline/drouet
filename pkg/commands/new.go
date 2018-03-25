@@ -20,7 +20,7 @@ import (
 )
 
 // Build "hugo new" command.
-func buildHugoNewCmd() *cobra.Command {
+func buildHugoNewCmd(h *hugoCmd) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "new [path]",
 		Short: "Create new content for your site",
@@ -30,7 +30,7 @@ It will guess which kind of file to create based on the path provided.
 You can also specify the kind with ` + "`-k KIND`" + `.
 
 If archetypes are provided in your theme or site, they will be used.`,
-		RunE: newContent,
+		RunE: h.newContent,
 	}
 
 	// Add flags used by all subcommands of new
@@ -44,28 +44,28 @@ If archetypes are provided in your theme or site, they will be used.`,
 	cmd.PersistentFlags().SetAnnotation("source", cobra.BashCompSubdirsInDir, []string{})
 
 	// Add subcommands
-	cmd.AddCommand(buildHugoNewSiteCmd())
-	cmd.AddCommand(buildHugoNewThemeCmd())
+	cmd.AddCommand(buildHugoNewSiteCmd(h))
+	cmd.AddCommand(buildHugoNewThemeCmd(h))
 
 	return cmd
 }
 
 // Build "hugo new site" command.
-func buildHugoNewSiteCmd() *cobra.Command {
+func buildHugoNewSiteCmd(h *hugoCmd) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "site [path]",
 		Short: "Create a new site (skeleton)",
 		Long: `Create a new site in the provided directory.
 The new site will have the correct structure, but no content or theme yet.
 Use ` + "`hugo new [contentPath]`" + ` to create new content.`,
-		RunE: newSite,
+		RunE: h.newSite,
 	}
 
 	return cmd
 }
 
 // Build "hugo new theme" command.
-func buildHugoNewThemeCmd() *cobra.Command {
+func buildHugoNewThemeCmd(h *hugoCmd) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "theme [name]",
 		Short: "Create a new theme",
@@ -73,7 +73,7 @@ func buildHugoNewThemeCmd() *cobra.Command {
 New theme is a skeleton. Please add content to the touched files. Add your
 name to the copyright line in the license and adjust the theme.toml file
 as you see fit.`,
-		RunE: newTheme,
+		RunE: h.newTheme,
 	}
 
 	return cmd
@@ -81,17 +81,17 @@ as you see fit.`,
 
 // ----------------------------------------------------------------------------------------------
 
-func newContent(cmd *cobra.Command, args []string) error {
+func (h *hugoCmd) newContent(cmd *cobra.Command, args []string) error {
 	fmt.Println("hugo new - hugo new code goes here")
 	return nil
 }
 
-func newSite(cmd *cobra.Command, args []string) error {
+func (h *hugoCmd) newSite(cmd *cobra.Command, args []string) error {
 	fmt.Println("hugo new site - hugo new site code goes here")
 	return nil
 }
 
-func newTheme(cmd *cobra.Command, args []string) error {
+func (h *hugoCmd) newTheme(cmd *cobra.Command, args []string) error {
 	fmt.Println("hugo new theme - hugo new theme code goes here")
 	return nil
 }

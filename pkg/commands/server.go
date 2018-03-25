@@ -20,7 +20,7 @@ import (
 )
 
 // Build "hugo server" command.
-func buildHugoServerCmd() *cobra.Command {
+func buildHugoServerCmd(h *hugoCmd) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "server",
 		Aliases: []string{"serve"},
@@ -37,7 +37,7 @@ By default hugo will also watch your files for any changes you make and
 automatically rebuild the site. It will then live reload any open browser pages
 and push the latest content to them. As most Hugo sites are built in a fraction
 of a second, you will be able to save and see your changes nearly instantly.`,
-		RunE: server,
+		RunE: h.server,
 	}
 
 	// Add flags shared by "hugo server"
@@ -62,7 +62,7 @@ of a second, you will be able to save and see your changes nearly instantly.`,
 
 // ----------------------------------------------------------------------------------------------
 
-func server(cmd *cobra.Command, args []string) error {
+func (h *hugoCmd) server(cmd *cobra.Command, args []string) error {
 	fmt.Println("hugo server - hugo server code goes here")
 	return nil
 }

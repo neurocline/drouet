@@ -20,11 +20,11 @@ import (
 )
 
 // Build "hugo check" command.
-func buildHugoCheckCmd() *cobra.Command {
+func buildHugoCheckCmd(h *hugoCmd) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "check",
 		Short: "Contains some verification checks",
-		RunE:  check,
+		RunE:  h.check,
 	}
 
 	return cmd
@@ -32,7 +32,7 @@ func buildHugoCheckCmd() *cobra.Command {
 
 // ----------------------------------------------------------------------------------------------
 
-func check(cmd *cobra.Command, args []string) error {
+func (h *hugoCmd) check(cmd *cobra.Command, args []string) error {
 	fmt.Println("hugo check - hugo check code goes here")
 	return nil
 }

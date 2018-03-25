@@ -20,12 +20,12 @@ import (
 )
 
 // Build "hugo version" command.
-func buildHugoVersionCmd() *cobra.Command {
+func buildHugoVersionCmd(h *hugoCmd) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "version",
 		Short: "Print the version number of Hugo",
 		Long:  `All software has versions. This is Hugo's.`,
-		RunE:  version,
+		RunE:  h.version,
 	}
 
 	return cmd
@@ -33,7 +33,7 @@ func buildHugoVersionCmd() *cobra.Command {
 
 // ----------------------------------------------------------------------------------------------
 
-func version(cmd *cobra.Command, args []string) error {
+func (h *hugoCmd) version(cmd *cobra.Command, args []string) error {
 	fmt.Println("hugo version - hugo version code goes here")
 	return nil
 }

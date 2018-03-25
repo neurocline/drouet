@@ -20,12 +20,12 @@ import (
 )
 
 // Build "hugo config" command.
-func buildHugoConfigCmd() *cobra.Command {
+func buildHugoConfigCmd(h *hugoCmd) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "config",
 		Short: "Print the site configuration",
 		Long:  `Print the site configuration, both default and custom settings.`,
-		RunE:  config,
+		RunE:  h.config,
 	}
 
 	return cmd
@@ -33,7 +33,7 @@ func buildHugoConfigCmd() *cobra.Command {
 
 // ----------------------------------------------------------------------------------------------
 
-func config(cmd *cobra.Command, args []string) error {
+func (h *hugoCmd) config(cmd *cobra.Command, args []string) error {
 	fmt.Println("hugo config - print config goes here")
 	return nil
 }

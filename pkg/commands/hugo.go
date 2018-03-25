@@ -20,42 +20,60 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/neurocline/drouet/pkg/core"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/nitro"
 )
 
-// Execute: Build command processor and run user commands
-func Execute() {
-	cmd := buildCommand()
+type hugoCmd struct {
+	*core.Hugo
+}
 
+// Execute builds a command processor and runs the user command.
+func Execute() {
+
+	// Do basic system init
+	core.Init()
+
+	// Create Hugo object to hold Hugo state, and build command processor
+	// (we pass the Hugo object in to every subcommand processor so each
+	// subcommand has access to the Hugo object).
+	hugo := &hugoCmd{core.NewHugo()}
+	cmd := buildCommand(hugo)
+
+	// Run the command processor
 	if c, err := cmd.ExecuteC(); err != nil {
 		c.Println("")
 		c.Println(c.UsageString())
 		os.Exit(-1)
 	}
+
+	// Shut everything down as cleanly as possible
+	hugo.Shutdown()
 }
 
 // Build the Hugo command - root and all its children
 // (every other command (verb) is attached as a child command)
-func buildCommand() *cobra.Command {
-	root := buildHugoCommand()
+func buildCommand(h *hugoCmd) *cobra.Command {
+	root := buildHugoCommand(h)
 
-	root.AddCommand(buildHugoBenchmarkCmd())
-	root.AddCommand(buildHugoCheckCmd())
-	root.AddCommand(buildHugoConfigCmd())
-	root.AddCommand(buildHugoConvertCmd())
-	root.AddCommand(buildHugoEnvCmd())
-	root.AddCommand(buildHugoGenCmd())
-	root.AddCommand(buildHugoImportCmd())
-	root.AddCommand(buildHugoListCmd())
-	root.AddCommand(buildHugoNewCmd())
-	root.AddCommand(buildHugoServerCmd())
-	root.AddCommand(buildHugoVersionCmd())
+	root.AddCommand(buildHugoBenchmarkCmd(h))
+	root.AddCommand(buildHugoCheckCmd(h))
+	root.AddCommand(buildHugoConfigCmd(h))
+	root.AddCommand(buildHugoConvertCmd(h))
+	root.AddCommand(buildHugoEnvCmd(h))
+	root.AddCommand(buildHugoGenCmd(h))
+	root.AddCommand(buildHugoImportCmd(h))
+	root.AddCommand(buildHugoListCmd(h))
+	root.AddCommand(buildHugoNewCmd(h))
+	root.AddCommand(buildHugoServerCmd(h))
+	root.AddCommand(buildHugoVersionCmd(h))
 	return root
 }
 
 // Build Hugo root command.
-func buildHugoCommand() *cobra.Command {
+func buildHugoCommand(h *hugoCmd) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "hugo",
 		Short: "hugo builds your site",
@@ -65,7 +83,7 @@ Hugo is a Fast and Flexible Static Site Generator
 built with love by spf13 and friends in Go.
 
 Complete documentation is available at http://gohugo.io/.`,
-		RunE: hugo,
+		RunE: h.hugo,
 	}
 
 	// Global flags apply to all commands
@@ -79,9 +97,9 @@ Complete documentation is available at http://gohugo.io/.`,
 
 	// Set bash-completion
 	// Each flag must first be defined before using the SetAnnotation() call.
-	_ = cmd.PersistentFlags().SetAnnotation("logFile", cobra.BashCompFilenameExt, []string{})
 	validConfigFilenames := []string{"json", "js", "yaml", "yml", "toml", "tml"}
-	_ = cmd.PersistentFlags().SetAnnotation("config", cobra.BashCompFilenameExt, validConfigFilenames)
+	cmd.PersistentFlags().SetAnnotation("config", cobra.BashCompFilenameExt, validConfigFilenames)
+	cmd.PersistentFlags().SetAnnotation("logFile", cobra.BashCompFilenameExt, []string{})
 
 	// Add flags shared by builders: "hugo", "hugo server", "hugo benchmark"
 	initHugoBuilderFlags(cmd)
@@ -132,10 +150,10 @@ func initHugoBuilderFlags(cmd *cobra.Command) {
 
 	// Set bash-completion.
 	// Each flag must first be defined before using the SetAnnotation() call.
-	_ = cmd.Flags().SetAnnotation("cacheDir", cobra.BashCompSubdirsInDir, []string{})
-	_ = cmd.Flags().SetAnnotation("destination", cobra.BashCompSubdirsInDir, []string{})
-	_ = cmd.Flags().SetAnnotation("source", cobra.BashCompSubdirsInDir, []string{})
-	_ = cmd.Flags().SetAnnotation("theme", cobra.BashCompSubdirsInDir, []string{"themes"})
+	cmd.Flags().SetAnnotation("cacheDir", cobra.BashCompSubdirsInDir, []string{})
+	cmd.Flags().SetAnnotation("destination", cobra.BashCompSubdirsInDir, []string{})
+	cmd.Flags().SetAnnotation("source", cobra.BashCompSubdirsInDir, []string{})
+	cmd.Flags().SetAnnotation("theme", cobra.BashCompSubdirsInDir, []string{"themes"})
 }
 
 // Add flags shared by benchmarking: "hugo", "hugo benchmark"
@@ -146,7 +164,8 @@ func initHugoBenchmarkFlags(cmd *cobra.Command) {
 // ----------------------------------------------------------------------------------------------
 
 // "hugo" with no verb is "hugo build", build a site
-func hugo(cmd *cobra.Command, args []string) error {
+func (h *hugoCmd) hugo(cmd *cobra.Command, args []string) error {
 	fmt.Println("hugo - build site goes here")
+	fmt.Printf("Hugo: %+v\n", *h.Hugo)
 	return nil
 }

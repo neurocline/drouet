@@ -20,7 +20,7 @@ import (
 )
 
 // Build "hugo env" command.
-func buildHugoGenCmd() *cobra.Command {
+func buildHugoGenCmd(h *hugoCmd) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "gen",
 		Short: "A collection of several useful generators.",
@@ -29,16 +29,16 @@ func buildHugoGenCmd() *cobra.Command {
 
 	// This is lame - you need to add a command before you can add
 	// its subcommands. This should be fixed.
-	cmd.AddCommand(buildHugoGenAutocompleteCmd())
-	cmd.AddCommand(buildHugoGenDocCmd())
-	cmd.AddCommand(buildHugoGenManCmd())
-	cmd.AddCommand(buildHugoGenDocsHelperCmd().cmd)
-	cmd.AddCommand(buildHugoGenChromaStyles().cmd)
+	cmd.AddCommand(buildHugoGenAutocompleteCmd(h))
+	cmd.AddCommand(buildHugoGenDocCmd(h))
+	cmd.AddCommand(buildHugoGenManCmd(h))
+	cmd.AddCommand(buildHugoGenDocsHelperCmd(h).cmd)
+	cmd.AddCommand(buildHugoGenChromaStyles(h).cmd)
 
 	return cmd
 }
 
-func buildHugoGenAutocompleteCmd() *cobra.Command {
+func buildHugoGenAutocompleteCmd(h *hugoCmd) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "autocomplete",
 		Short: "Generate shell autocompletion script for Hugo",
@@ -59,7 +59,7 @@ Logout and in again to reload the completion scripts,
 or just source them in directly:
 
 	$ . /etc/bash_completion`,
-		RunE: genAutocomplete,
+		RunE: h.genAutocomplete,
 	}
 
 	// I think these are being misused
@@ -72,7 +72,7 @@ or just source them in directly:
 	return cmd
 }
 
-func buildHugoGenDocCmd() *cobra.Command {
+func buildHugoGenDocCmd(h *hugoCmd) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "doc",
 		Short: "Generate Markdown documentation for the Hugo CLI.",
@@ -83,7 +83,7 @@ of Hugo's command-line interface for http://gohugo.io/.
 
 It creates one Markdown file per command with front matter suitable
 for rendering in Hugo.`,
-		RunE: genDoc,
+		RunE: h.genDoc,
 	}
 
 	cmd.PersistentFlags().String("dir", "/tmp/hugodoc/", "the directory to write the doc.")
@@ -94,14 +94,14 @@ for rendering in Hugo.`,
 	return cmd
 }
 
-func buildHugoGenManCmd() *cobra.Command {
+func buildHugoGenManCmd(h *hugoCmd) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "man",
 		Short: "Generate man pages for the Hugo CLI",
 		Long: `This command automatically generates up-to-date man pages of Hugo's
 command-line interface.  By default, it creates the man page files
 in the "man" directory under the current directory.`,
-		RunE: genMan,
+		RunE: h.genMan,
 	}
 
 	cmd.PersistentFlags().String("dir", "man/", "the directory to write the man pages.")
@@ -112,7 +112,7 @@ in the "man" directory under the current directory.`,
 	return cmd
 }
 
-func buildHugoGenDocsHelperCmd() *genDocsHelper {
+func buildHugoGenDocsHelperCmd(h *hugoCmd) *genDocsHelper {
 	g := &genDocsHelper{}
 
 	g.cmd = &cobra.Command{
@@ -120,7 +120,7 @@ func buildHugoGenDocsHelperCmd() *genDocsHelper {
 		Short:  "Generate some data files for the Hugo docs.",
 		Hidden: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return g.generate()
+			return g.generate(h)
 		},
 	}
 
@@ -132,7 +132,7 @@ func buildHugoGenDocsHelperCmd() *genDocsHelper {
 	return g
 }
 
-func buildHugoGenChromaStyles() *genChromaStyles {
+func buildHugoGenChromaStyles(h *hugoCmd) *genChromaStyles {
 	g := &genChromaStyles{}
 
 	g.cmd = &cobra.Command{
@@ -143,7 +143,7 @@ This stylesheet is needed if pygmentsUseClasses is enabled in config.
 
 See https://help.farbox.com/pygments.html for preview of available styles`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return g.generate()
+			return g.generate(h)
 		},
 	}
 
@@ -159,17 +159,17 @@ See https://help.farbox.com/pygments.html for preview of available styles`,
 
 // ----------------------------------------------------------------------------------------------
 
-func genAutocomplete(cmd *cobra.Command, args []string) error {
+func (h *hugoCmd) genAutocomplete(cmd *cobra.Command, args []string) error {
 	fmt.Println("hugo gen autocomplete - hugo gen autocomplete code goes here")
 	return nil
 }
 
-func genDoc(cmd *cobra.Command, args []string) error {
+func (h *hugoCmd) genDoc(cmd *cobra.Command, args []string) error {
 	fmt.Println("hugo gen doc - hugo gen doc code goes here")
 	return nil
 }
 
-func genMan(cmd *cobra.Command, args []string) error {
+func (h *hugoCmd) genMan(cmd *cobra.Command, args []string) error {
 	fmt.Println("hugo gen man - hugo gen man code goes here")
 	return nil
 }
@@ -179,7 +179,7 @@ type genDocsHelper struct {
 	cmd    *cobra.Command
 }
 
-func (g *genDocsHelper) generate() error {
+func (g *genDocsHelper) generate(h *hugoCmd) error {
 	return nil
 }
 
@@ -190,6 +190,6 @@ type genChromaStyles struct {
 	cmd            *cobra.Command
 }
 
-func (g *genChromaStyles) generate() error {
+func (g *genChromaStyles) generate(h *hugoCmd) error {
 	return nil
 }

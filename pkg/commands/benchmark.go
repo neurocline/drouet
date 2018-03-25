@@ -20,13 +20,13 @@ import (
 )
 
 // Build "hugo benchmark" command.
-func buildHugoBenchmarkCmd() *cobra.Command {
+func buildHugoBenchmarkCmd(h *hugoCmd) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "benchmark",
 		Short: "Benchmark Hugo by building a site a number of times.",
 		Long: `Hugo can build a site many times over and analyze the running process
 creating a benchmark.`,
-		RunE: benchmark,
+		RunE: h.benchmark,
 	}
 
 	// Add flags shared by builders: "hugo", "hugo server", "hugo benchmark"
@@ -45,7 +45,7 @@ creating a benchmark.`,
 
 // ----------------------------------------------------------------------------------------------
 
-func benchmark(cmd *cobra.Command, args []string) error {
+func (h *hugoCmd) benchmark(cmd *cobra.Command, args []string) error {
 	fmt.Println("hugo benchmark - benchmark site goes here")
 	return nil
 }

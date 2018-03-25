@@ -20,7 +20,7 @@ import (
 )
 
 // Build "hugo convert" command.
-func buildHugoConvertCmd() *cobra.Command {
+func buildHugoConvertCmd(h *hugoCmd) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "convert",
 		Short: "Convert your content to different formats",
@@ -30,9 +30,9 @@ See convert's subcommands toJSON, toTOML and toYAML for more information.`,
 		RunE: nil, // will print usage
 	}
 
-	cmd.AddCommand(buildHugoConvertToJsonCmd())
-	cmd.AddCommand(buildHugoConvertToTomlCmd())
-	cmd.AddCommand(buildHugoConvertToYamlCmd())
+	cmd.AddCommand(buildHugoConvertToJsonCmd(h))
+	cmd.AddCommand(buildHugoConvertToTomlCmd(h))
+	cmd.AddCommand(buildHugoConvertToYamlCmd(h))
 
 	// Flags shared between all convert commands
 	cmd.PersistentFlags().StringP("output", "o", "", "filesystem path to write files to")
@@ -44,40 +44,40 @@ See convert's subcommands toJSON, toTOML and toYAML for more information.`,
 	return cmd
 }
 
-func buildHugoConvertToJsonCmd() *cobra.Command {
+func buildHugoConvertToJsonCmd(h *hugoCmd) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "toJSON",
 		Short: "Convert front matter to JSON",
 		Long: `toJSON converts all front matter in the content directory
 to use JSON for the front matter.`,
-		RunE: convertToJson,
+		RunE: h.convertToJson,
 	}
 
 	return cmd
 }
 
-func buildHugoConvertToTomlCmd() *cobra.Command {
+func buildHugoConvertToTomlCmd(h *hugoCmd) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "toTOML",
 		Short: "Convert front matter to TOML",
 		Long: `toTOML converts all front matter in the content directory
 to use TOML for the front matter.`,
-		RunE: convertToToml,
+		RunE: h.convertToToml,
 	}
 
 	return cmd
 }
 
-func buildHugoConvertToYamlCmd() *cobra.Command {
+func buildHugoConvertToYamlCmd(h *hugoCmd) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "toYAML",
 		Short: "Convert front matter to YAML",
 		Long: `toYAML converts all front matter in the content directory
 to use YAML for the front matter.`,
-		RunE: convertToYaml,
+		RunE: h.convertToYaml,
 	}
 
 	return cmd
@@ -85,24 +85,24 @@ to use YAML for the front matter.`,
 
 // ----------------------------------------------------------------------------------------------
 
-func convert(cmd *cobra.Command, args []string) error {
+func (h *hugoCmd) convert(cmd *cobra.Command, args []string) error {
 	fmt.Println("hugo convert - hugo convert goes here")
 	return nil
 }
 
-func convertToJson(cmd *cobra.Command, args []string) error {
+func (h *hugoCmd) convertToJson(cmd *cobra.Command, args []string) error {
 	// return convertContents(rune([]byte(parser.JSONLead)[0]))
 	fmt.Println("hugo convert json - hugo convert json goes here")
 	return nil
 }
 
-func convertToToml(cmd *cobra.Command, args []string) error {
+func (h *hugoCmd) convertToToml(cmd *cobra.Command, args []string) error {
 	// return convertContents(rune([]byte(parser.TOMLLead)[0]))
 	fmt.Println("hugo convert json - hugo convert json goes here")
 	return nil
 }
 
-func convertToYaml(cmd *cobra.Command, args []string) error {
+func (h *hugoCmd) convertToYaml(cmd *cobra.Command, args []string) error {
 	// return convertContents(rune([]byte(parser.YAMLLead)[0]))
 	fmt.Println("hugo convert json - hugo convert json goes here")
 	return nil

@@ -59,3 +59,23 @@ function. What would this do that wouldn't be covered by Hugo test code?
 If the gen code gets large, it should be split up into a new package
 `hugo/pkg/commands/gen/.`, leaving all the command-line setup and processing
 in `hugp/pkg/commands/gen.go`
+
+## Accessing Hugo state from Hugo commands
+
+The Cobra library doesn't really have provision for passing state in to
+command handlers (specified with variants of `Run` in a `cobra.Command`
+struct). There are two Go ways to handle this
+
+1. Use method values for the command handlers
+2. Use local functions to capture state in the command handlers.
+
+Either way, the state will be held onto until the end of the program, unless
+the command handler structures are disposed of, somehow. Since the same code
+controls the command handlers and execution, this is reasonable and safe.
+
+Option 1 is a bit tricky in that you can't just add new methods to a type
+you don't own. Struct embedding bypasses this.
+
+Option 2 is simpler but requires every command handler to have a local
+literal function that wraps the state and calls the real handler (or is
+the entire command handler).

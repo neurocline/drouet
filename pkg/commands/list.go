@@ -20,7 +20,7 @@ import (
 )
 
 // Build "hugo list" command.
-func buildHugoListCmd() *cobra.Command {
+func buildHugoListCmd(h *hugoCmd) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "Listing out various types of content",
@@ -31,9 +31,9 @@ List requires a subcommand, e.g. ` + "`hugo list drafts`.",
 	}
 
 	// Add hugo list subcommands
-	cmd.AddCommand(buildHugoListDraftsCmd())
-	cmd.AddCommand(buildHugoListExpiredCmd())
-	cmd.AddCommand(buildHugoListFutureCmd())
+	cmd.AddCommand(buildHugoListDraftsCmd(h))
+	cmd.AddCommand(buildHugoListExpiredCmd(h))
+	cmd.AddCommand(buildHugoListFutureCmd(h))
 
 	// Add flags used by all list subcommands
 	cmd.PersistentFlags().StringP("source", "s", "", "filesystem path to read files relative from")
@@ -45,38 +45,38 @@ List requires a subcommand, e.g. ` + "`hugo list drafts`.",
 }
 
 // Build "hugo list drafts" command.
-func buildHugoListDraftsCmd() *cobra.Command {
+func buildHugoListDraftsCmd(h *hugoCmd) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "drafts",
 		Short: "List all drafts",
 		Long:  `List all of the drafts in your content directory.`,
-		RunE:  listDrafts,
+		RunE:  h.listDrafts,
 	}
 
 	return cmd
 }
 
 // Build "hugo list expired" command.
-func buildHugoListExpiredCmd() *cobra.Command {
+func buildHugoListExpiredCmd(h *hugoCmd) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "expired",
 		Short: "List all posts already expired",
 		Long: `List all of the posts in your content directory which has already
 expired.`,
-		RunE: listExpired,
+		RunE: h.listExpired,
 	}
 
 	return cmd
 }
 
 // Build "hugo list future" command.
-func buildHugoListFutureCmd() *cobra.Command {
+func buildHugoListFutureCmd(h *hugoCmd) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "future",
 		Short: "List all posts dated in the future",
 		Long: `List all of the posts in your content directory which will be
 posted in the future.`,
-		RunE: listFuture,
+		RunE: h.listFuture,
 	}
 
 	return cmd
@@ -84,17 +84,17 @@ posted in the future.`,
 
 // ----------------------------------------------------------------------------------------------
 
-func listDrafts(cmd *cobra.Command, args []string) error {
+func (h *hugoCmd) listDrafts(cmd *cobra.Command, args []string) error {
 	fmt.Println("hugo list drafts - hugo list drafts code goes here")
 	return nil
 }
 
-func listExpired(cmd *cobra.Command, args []string) error {
+func (h *hugoCmd) listExpired(cmd *cobra.Command, args []string) error {
 	fmt.Println("hugo list expired - hugo list expired code goes here")
 	return nil
 }
 
-func listFuture(cmd *cobra.Command, args []string) error {
+func (h *hugoCmd) listFuture(cmd *cobra.Command, args []string) error {
 	fmt.Println("hugo list future - hugo list future code goes here")
 	return nil
 }

@@ -20,12 +20,12 @@ import (
 )
 
 // Build "hugo env" command.
-func buildHugoEnvCmd() *cobra.Command {
+func buildHugoEnvCmd(h *hugoCmd) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "env",
 		Short: "Print Hugo version and environment info",
 		Long:  `Print Hugo version and environment info. This is useful in Hugo bug reports.`,
-		RunE:  env,
+		RunE:  h.env,
 	}
 
 	return cmd
@@ -33,7 +33,7 @@ func buildHugoEnvCmd() *cobra.Command {
 
 // ----------------------------------------------------------------------------------------------
 
-func env(cmd *cobra.Command, args []string) error {
+func (h *hugoCmd) env(cmd *cobra.Command, args []string) error {
 	fmt.Println("hugo env - hugo env code goes here")
 	return nil
 }
