@@ -40,19 +40,14 @@ func buildHugoVersionCmd(h *hugoCmd) *cobra.Command {
 
 func (h *hugoCmd) version(cmd *cobra.Command, args []string) error {
 
-	os_arch_date := fmt.Sprintf("%s/%s BuildDate: %s", runtime.GOOS, runtime.GOARCH, core.BuildDate)
+	// Create Hugo version string with optional commit hash
 	vers := fmt.Sprintf("%s", core.CurrentHugoVersion())
 	if core.CommitHash != "" {
 		vers = fmt.Sprintf("%s-%s", vers, strings.ToUpper(core.CommitHash))
 	}
+	os_arch := fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH)
 
-	jww.FEEDBACK.Printf("Hugo Static Site Generator v%s %s\n", vers, os_arch_date)
-
-	//if hugolib.CommitHash == "" {
-	//	jww.FEEDBACK.Printf("Hugo Static Site Generator v%s %s/%s BuildDate: %s\n", helpers.CurrentHugoVersion, runtime.GOOS, runtime.GOARCH, hugolib.BuildDate)
-	//} else {
-	//	jww.FEEDBACK.Printf("Hugo Static Site Generator v%s-%s %s/%s BuildDate: %s\n", helpers.CurrentHugoVersion, strings.ToUpper(hugolib.CommitHash), runtime.GOOS, runtime.GOARCH, hugolib.BuildDate)
-	//}
+	jww.FEEDBACK.Printf("Hugo Static Site Generator v%s %s BuildDate: %s\n", vers, os_arch, core.BuildDate)
 
 	return nil
 }

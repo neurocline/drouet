@@ -14,11 +14,23 @@
 package main
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/neurocline/drouet/pkg/commands"
 	"github.com/neurocline/drouet/pkg/z"
 )
 
+// Current design for code - no use of os.Exit anywhere in the code except
+// at the top level. Calls to panic are allowed, and if not caught will
+// result in a clean exit (because panic respects defer calls).
+
 func main() {
-	defer z.Shutdown()
-	commands.Execute()
+	fmt.Fprintf(z.Log, "Hugo main\n")
+	var err int
+	defer func() { os.Exit(err) }()
+
+	defer z.Shutdown() // clean up our global logger
+
+    err = commands.Execute()
 }

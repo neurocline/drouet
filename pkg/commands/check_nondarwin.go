@@ -11,23 +11,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// +build !darwin
+
 package commands
 
 import (
 	"github.com/spf13/cobra"
 )
 
-// Build "hugo check" command.
-func buildHugoCheckCmd(h *hugoCmd) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "check",
-		Short: "Contains some verification checks",
-	}
+func buildHugoCheckUlimitCmd(h *hugoCmd) *cobra.Command {
+	return nil
+}
 
-	// Add the check ulimit subcommand if it exists (only for Darwin)
-	if cmdUlimit := buildHugoCheckUlimitCmd(h); cmdUlimit != nil {
-		cmd.AddCommand(cmdUlimit)
-	}
-
-	return cmd
+func tweakLimit() {
+	// nothing to do
 }

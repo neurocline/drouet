@@ -57,17 +57,19 @@ func Init() {
 
 // Shutdown does clean shutdown, and reports user-level errors that
 // were deferred until execution end.
-func (h *Hugo) Shutdown() {
+func (h *Hugo) Shutdown() int {
 
 	// If we had any log.ERROR output (even if it was suppressed somehow),
 	// we exit with an error code so that systems using hugo as a tool
 	// know something went wrong.
 	// TBD get rid of all global logging calls.
 	if jww.LogCountForLevelsGreaterThanorEqualTo(jww.LevelError) > 0 {
-		os.Exit(-1)
+		return -1
 	}
 
 	if h.Logger.LogCountForLevelsGreaterThanorEqualTo(jww.LevelError) > 0 {
-		os.Exit(-1)
+		return -1
 	}
+
+	return 0
 }

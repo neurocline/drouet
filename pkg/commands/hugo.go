@@ -18,7 +18,6 @@ package commands
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/neurocline/drouet/pkg/core"
 
@@ -33,7 +32,7 @@ type hugoCmd struct {
 }
 
 // Execute builds a command processor and runs the user command.
-func Execute() {
+func Execute() int {
 
 	// Do basic system init
 	core.Init()
@@ -49,11 +48,11 @@ func Execute() {
 	if c, err := cmd.ExecuteC(); err != nil {
 		c.Println("")
 		c.Println(c.UsageString())
-		os.Exit(-1)
+		return -1
 	}
 
 	// Shut everything down as cleanly as possible
-	hugo.Shutdown()
+	return hugo.Shutdown()
 }
 
 // Build the Hugo command - root and all its children
