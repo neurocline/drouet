@@ -1,6 +1,8 @@
-![Drouet](https://raw.githubusercontent.com/neurocline/drouet/master/docs/drouet.png)
+[![Drouet](https://raw.githubusercontent.com/neurocline/drouet/master/docs/drouet.png)](https://en.wikipedia.org/wiki/Juliette_Drouet)
 
 Drouet is an experimental rewrite of [Hugo](https://github.com/gohugoio/hugo), "A Fast and Flexible Static Site Generator built with love". You don't want to use this, you want to use Hugo instead.
+
+[Go report card](https://goreportcard.com/report/github.com/neurocline/drouet)
 
 ## Overview
 

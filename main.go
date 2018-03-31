@@ -15,8 +15,10 @@ package main
 
 import (
 	"github.com/neurocline/drouet/pkg/commands"
+	"github.com/neurocline/drouet/pkg/z"
 )
 
 func main() {
+	defer z.Shutdown()
 	commands.Execute()
 }

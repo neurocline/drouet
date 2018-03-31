@@ -19,6 +19,8 @@ import (
 	"os"
 
 	jww "github.com/spf13/jwalterweatherman"
+	"github.com/spf13/afero"
+	"github.com/neurocline/viper" // private fork for now, until merge into mainline
 )
 
 // NewHugo creates an instance of the top-level state for Hugo operation.
@@ -37,6 +39,8 @@ func NewHugo() *Hugo {
 
 type Hugo struct {
 	Logger *jww.Notepad
+	Config *viper.Viper // TBD do we want an interface here that we can override?
+	Fs *afero.Fs
 }
 
 // ----------------------------------------------------------------------------------------------

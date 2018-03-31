@@ -27,6 +27,7 @@ import (
 	"github.com/spf13/pflag"
 )
 
+// Wrap the core.Hugo type so we can declare methods that take a *core.Hugo receiver
 type hugoCmd struct {
 	*core.Hugo
 }

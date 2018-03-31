@@ -45,3 +45,56 @@ we just get pain from trying to wrap it.
 
 I haven't made this change yet, but I want to, since it's things like this that make code grow
 without bounds.
+
+## Config
+
+Start by creating command-line processors with Cobra.
+
+If we have a command that loads config from config files:
+
+- if `--config` was specified, load all the mentioned config files.
+- if `--config` was not specified, look for `config.[toml|yaml|yson]` in working directory.
+
+Merge in flags from the active command-line processor.
+
+Add default config.
+
+Access all config through Viper accessors.
+
+I don't see the point in exactly replicating the existing Hugo code's behavior with config. It
+should be general-case, and it's not.
+
+E.g. instead of this
+
+```go
+    for _, cmdV := range c.subCmdVs {
+        c.initializeFlags(cmdV)
+    }
+```
+
+where `cmdeer.initializeFlags` cherry-picks among a set of flags,
+just do this
+
+```go
+    for _, cmdV := range c.subCmdVs {
+        config.BindPFlags(cmdV.Flags()) // bind all flags to viper - why not?
+        config.BindPFlags(cmdV.PersistentFlags()) // bind all persistent flags to viper - why not?
+        c.initializeFlags(cmdV)
+    }
+```
+
+where we add all flags to the config, under their own names. We still need aliases, for the
+case where command-line flags are named differently from config file keys.
+
+### Updating viper
+
+The ability to merge config files was added to Viper, but whole keys are replaced at the base level,
+which users find annoying. Maybe there should be an option to merge keys instead of replace? Certainly,
+replacing is very predictable, whereas merging has all kinds of edge cases (there's no easy way to
+delete sub-keys, for example).
+
+Maybe this is too weird and should be avoided, just like config values replace default values en-masse.
+
+Keys are case-insensitive, but it would be nice to be case-preserving. That would have to be done
+with a separate table, because the lookup tables themselves need lower-case keys (there's no way
+to override map behavior in Go as there is in other languages).
