@@ -35,6 +35,7 @@ import (
 // InitializeConfig creates a default config and then updates it with
 // values from a config file and from command-line flags.
 func InitializeConfig(h *Hugo, cmds ...*cobra.Command) (*viper.Viper, error) {
+	fmt.Fprintf(z.Log, "core.InitializeConfig\n%s\n", z.Stack())
 
 	// First, create a default config with Viper
 	v := viper.New()

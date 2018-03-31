@@ -14,11 +14,13 @@
 package commands
 
 import (
+	"fmt"
 	"reflect"
 	"sort"
 
 	"github.com/neurocline/drouet/pkg/core"
 	//"github.com/neurocline/viper"
+	"github.com/neurocline/drouet/pkg/z"
 
 	"github.com/spf13/cobra"
 	jww "github.com/spf13/jwalterweatherman"
@@ -43,6 +45,7 @@ func buildHugoConfigCmd(h *hugoCmd) *cobra.Command {
 // ----------------------------------------------------------------------------------------------
 
 func (h *hugoCmd) config(cmd *cobra.Command, args []string) error {
+	fmt.Fprintf(z.Log, "commands.config\n%s\n", z.Stack())
 	//fmt.Println("hugo config - print config goes here")
 
 	// Load config
