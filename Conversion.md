@@ -21,11 +21,11 @@ All other package code is in the `pkg` directory.
 
 | hugo file | drouet file| Notes |
 | ---- | ------ | -------- |
-| benchmark.go         | benchmark.go         | cmd      |
-| ~~check.go~~         | ~~check.go~~         | ~~done~~ |
+| `benchmark.go`         | `benchmark.go`         | cmd      |
+| ~~`check.go`~~         | ~~`check.go`~~         | ~~done~~ |
 | commandeer.go        |                      |          |
 | convert.go           | convert.go           | cmd      |
-| env.go               | env.go               | cmd      |
+| ~~env.go~~           | ~~env.go~~           | ~~done~~ |
 | gen.go               | gen.go               | cmd      |
 | genautocomplete.go   | gen.go               | cmd      |
 | genchromastyles.go   | gen.go               | cmd      |
@@ -42,8 +42,8 @@ All other package code is in the `pkg` directory.
 | list_config.go       | config.go            | except InitializeConfig |
 | new.go               | new.go               | cmd      |
 | new_test.go          |                      |          |
-| release.go           | release.go           | except releaser |
-| server.go            | server.go            | cmd      |
+| ~~release.go~~       | ~~release.go~~       | ~~done~~ |
+| server.go            | server.go            | cmd, fixURL |
 | ~~server_test.go~~   | ~~server_test.go~~   | ~~done~~ |
 | static_syncer.go     |                      |          |
 | ~~version.go~~       | ~~version.go~~       | ~~done~~ |
@@ -155,7 +155,7 @@ This is a case where we kept a few global variables, so that the build process c
 values into them. The Hugo build is done like this
 
 ```
-$ go install -X "github.com/gohugoio/hugo/hugolib.CommitHash=$COMMIT_HASH -X "github.com/gohugoio/hugo/hugolib.BuildDate=$BUILD_DATE"
+$ go install -ldflags "-X github.com/gohugoio/hugo/hugolib.CommitHash=$COMMIT_HASH -X github.com/gohugoio/hugo/hugolib.BuildDate=$BUILD_DATE"
 ```
 
 which stamps values into `hugolib.CommitHash` and `hugolib.BuildDate`. These are now `core.CommitHash` and `core.BuildDate`.
@@ -183,10 +183,10 @@ TBD
 - _cache/_
 - commands/
   - benchmark.go
-  - check.go
-  - **commandeer.go**
+  - ~~check.go~~
+  - _commandeer.go_
   - convert.go
-  - env.go
+  - ~~env.go~~
   - gen.go
   - genautocomplete.go
   - genchromastyles.go
@@ -194,17 +194,17 @@ TBD
   - gendocshelper.go
   - genman.go
   - hugo.go
-  - _hugo_windows.go_
+  - ~~hugo_windows.go~~
   - import_jekyll.go
   - _import_jekyll_test.go_
-  - _limit_darwin.go_
-  - _limit_others.go_
+  - ~~limit_darwin.go~~
+  - ~~limit_others.go~~
   - list.go
   - ~~list_config.go~~
   - new.go
   - _new_test.go_
-  - _release.go_
+  - ~~release.go~~
   - server.go
-  - _server_test.go_
+  - ~~server_test.go~~
   - _static_syncer.go_
   - ~~version.go~~

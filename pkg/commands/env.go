@@ -14,9 +14,10 @@
 package commands
 
 import (
-	"fmt"
+	"runtime"
 
 	"github.com/spf13/cobra"
+	jww "github.com/spf13/jwalterweatherman"
 )
 
 // Build "hugo env" command.
@@ -34,6 +35,9 @@ func buildHugoEnvCmd(h *hugoCmd) *cobra.Command {
 // ----------------------------------------------------------------------------------------------
 
 func (h *hugoCmd) env(cmd *cobra.Command, args []string) error {
-	fmt.Println("hugo env - hugo env code goes here")
+	h.version(cmd, args)
+	jww.FEEDBACK.Printf("GOOS=%q\n", runtime.GOOS)
+	jww.FEEDBACK.Printf("GOARCH=%q\n", runtime.GOARCH)
+	jww.FEEDBACK.Printf("GOVERSION=%q\n", runtime.Version())
 	return nil
 }

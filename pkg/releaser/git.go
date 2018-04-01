@@ -1,4 +1,4 @@
-// Copyright 2015 The Hugo Authors. All rights reserved.
+// Copyright 2017-present The Hugo Authors. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -11,26 +11,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package releaser
 
 import (
 	"fmt"
-	"os"
-
-	"github.com/neurocline/drouet/pkg/commands"
-	"github.com/neurocline/drouet/pkg/z"
+	"os/exec"
 )
 
-// Current design for code - no use of os.Exit anywhere in the code except
-// at the top level. Calls to panic are allowed, and if not caught will
-// result in a clean exit (because panic respects defer calls).
-
-func main() {
-	fmt.Fprintf(z.Log, "Hugo main\n")
-	var err int
-	defer func() { os.Exit(err) }()
-
-	defer z.Shutdown() // clean up our global logger
-
-	err = commands.Execute()
+func git(args ...string) (string, error) {
+	cmd := exec.Command("git", args...)
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return "", fmt.Errorf("git failed: %q: %q (%q)", err, out, args)
+	}
+	return string(out), nil
 }

@@ -16,6 +16,8 @@ package commands
 import (
 	"errors"
 
+	"github.com/neurocline/drouet/pkg/releaser"
+
 	"github.com/spf13/cobra"
 )
 
@@ -57,7 +59,5 @@ func (r *releaseCommandeer) release(h *hugoCmd) error {
 		return errors.New("must set the --rel flag to the relevant version number")
 	}
 
-	// TBD not implemented yet
-//	return releaser.New(r.version, r.skipPublish, r.try).Run()
-	return nil
+	return releaser.New(r.version, r.skipPublish, r.try).Run()
 }
