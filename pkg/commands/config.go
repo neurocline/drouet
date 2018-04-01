@@ -45,7 +45,7 @@ func buildHugoConfigCmd(h *hugoCmd) *cobra.Command {
 // ----------------------------------------------------------------------------------------------
 
 func (h *hugoCmd) config(cmd *cobra.Command, args []string) error {
-	fmt.Fprintf(z.Log, "commands.config\n%s\n", z.Stack())
+	//fmt.Fprintf(z.Log, "commands.config\n%s\n", z.Stack())
 	//fmt.Println("hugo config - print config goes here")
 
 	// Load config
@@ -54,6 +54,7 @@ func (h *hugoCmd) config(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+	fmt.Fprintf(z.Log, "commands.config()%s\n%s\n", z.Stack(), h.Config.Spew())
 
 	// Show all config organized by origin
 	allSettings := h.Config.AllSettings()

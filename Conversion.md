@@ -23,30 +23,30 @@ All other package code is in the `pkg` directory.
 | ---- | ------ | -------- |
 | `benchmark.go`         | `benchmark.go`         | cmd      |
 | ~~`check.go`~~         | ~~`check.go`~~         | ~~done~~ |
-| commandeer.go        |                      |          |
-| convert.go           | convert.go           | cmd      |
-| ~~env.go~~           | ~~env.go~~           | ~~done~~ |
-| gen.go               | gen.go               | cmd      |
-| genautocomplete.go   | gen.go               | cmd      |
-| genchromastyles.go   | gen.go               | cmd      |
-| gendoc.go            | gen.go               | cmd      |
-| gendocshelper.go     | gen.go               | cmd      |
-| genman.go            | gen.go               | cmd      |
-| hugo.go              | hugo.go              | cmd, config |
-| ~~hugo_windows.go~~  | ~~hugo_windows.go~~  | ~~done~~ |
-| import_jekyll.go     | import.go            | cmd      |
-| import_jekyll_test.go|                      |          |
-| ~~limit_darwin.go~~  | ~~check_darwin.go~~  | not tested |
-| ~~limit_others.go~~ | ~~check_notdarwin.go~~| ~~done~~ |
-| list.go              | list.go              | cmd      |
-| list_config.go       | config.go            | except InitializeConfig |
-| new.go               | new.go               | cmd      |
-| new_test.go          |                      |          |
-| ~~release.go~~       | ~~release.go~~       | ~~done~~ |
-| server.go            | server.go            | cmd, fixURL |
-| ~~server_test.go~~   | ~~server_test.go~~   | ~~done~~ |
-| static_syncer.go     |                      |          |
-| ~~version.go~~       | ~~version.go~~       | ~~done~~ |
+| `commandeer.go`        |                      |          |
+| `convert.go`           | `convert.go`           | cmd      |
+| ~~`env.go`~~           | ~~`env.go`~~           | ~~done~~ |
+| `gen.go`               | `gen.go`               | cmd      |
+| `genautocomplete.go`   | `gen.go`               | cmd      |
+| `genchromastyles.go`   | `gen.go`               | cmd      |
+| `gendoc.go`            | `gen.go`               | cmd      |
+| `gendocshelper.go`     | `gen.go`               | cmd      |
+| `genman.go`            | `gen.go`               | cmd      |
+| `hugo.go`              | `hugo.go`              | cmd, config |
+| ~~`hugo_windows.go`~~  | ~~`hugo_windows.go`~~  | ~~done~~ |
+| `import_jekyll.go`     | `import.go`            | cmd      |
+| `import_jekyll_test.go`|                      |          |
+| ~~`limit_darwin.go`~~  | ~~`check_darwin.go`~~  | not tested |
+| ~~`limit_others.go`~~ | ~~`check_notdarwin.go`~~| ~~done~~ |
+| `list.go`              | `list.go`              | cmd      |
+| `list_config.go`       | `config.go`            | except InitializeConfig |
+| `new.go`               | `new.go`               | cmd      |
+| `new_test.go`          |                      |          |
+| ~~`release.go`~~       | ~~`release.go`~~       | ~~done~~ |
+| `server.go`            | `server.go`            | cmd, fixURL |
+| ~~`server_test.go`~~   | ~~`server_test.go`~~   | ~~done~~ |
+| `static_syncer.go`     |                      |          |
+| ~~`version.go`~~       | ~~`version.go`~~       | ~~done~~ |
 
 Each subcommand (verb) is moved to its own file. Some verbs have subcommands of their
 own, and for now, each verb subcommand is in the verb's file.
@@ -91,17 +91,17 @@ This is in progress; the command-line parsing and config loading is the first fo
 
 Done
 
-- var HugoCmd \*cobra.Command is now a local
+- `var HugoCmd *cobra.Command` is now a local
 - `var hugoCmdV *cobra.Command` removed. ask why this was passed into flags parsing for all subcommands
 - all global variables are removed
-- Execute, AddCommands, initHugoBuilderFlags, initRootPersistentFlags
-- initHugoBuildCommonFlags, initBenchmarkBuildingFlags
-- init() function removed and code moved elsewhere
-- initializeFlags replaced with "add all flags to Viper" (check for aliasing needed)
+- `Execute`, `AddCommands`, `initHugoBuilderFlags`, `initRootPersistentFlags`
+- `initHugoBuildCommonFlags`, `initBenchmarkBuildingFlags`
+- `init()` function removed and code moved elsewhere
+- `initializeFlags` replaced with "add all flags to Viper" (check for aliasing needed)
 
 In progress
 
-- InitializeConfig
+- `InitializeConfig`
 
 TBD
 
@@ -109,17 +109,17 @@ TBD
 - `Reset()`
 - `commandError struct` and methods
 - error handling not done yet
-- createLogger
-- deprecatedFlags
-- fullBuild, build, serverBuild
-- copyStatic, createStaticDirsConfig, doWithPublishDirs
-- countingStatFs and methods
-- copyStaticTo
-- timeTrack
-- getDirList
-- recreateAndBuildSites, resetAndBuildSites, initSites, buildSites
-- newWatcher
-- pickOneWriteOrCreatePath, isThemeVsHugoVersionMismatch
+- `createLogger`
+- `deprecatedFlags`
+- `fullBuild`, `build`, `serverBuild`
+- `copyStatic`, `createStaticDirsConfig`, `doWithPublishDirs`
+- `countingStatFs` and methods
+- `copyStaticTo`
+- `timeTrack`
+- `getDirList`
+- `recreateAndBuildSites`, `resetAndBuildSites`, `initSites`, `buildSites`
+- `newWatcher`
+- `pickOneWriteOrCreatePath`, `isThemeVsHugoVersionMismatch`
 
 #### commands.Execute()
 
@@ -140,12 +140,12 @@ it does.
 
 Done
 
-- var configCmd \*cobra.Command is now a local
-- printConfig
+- `var configCmd *cobra.Command` is now a local
+- `printConfig`
 
 In progress
 
-- InitializeConfig
+- `InitializeConfig`
 
 ### file hugo/commands/version.go
 
@@ -169,8 +169,8 @@ $ go install -v -ldflags "-X %XHASH% -X %XBUILD%" github.com/neurocline/drouet
 
 Done
 
-- var versionCmd \*cobra.Command is now a local
-- printHugoVersion
+- `var versionCmd *cobra.Command` is now a local
+- `printHugoVersion`
 
 TBD
 
@@ -178,33 +178,33 @@ TBD
 
 # By source file
 
-- ~~main.go~~
-- _bufferpool/_
-- _cache/_
-- commands/
-  - benchmark.go
-  - ~~check.go~~
-  - _commandeer.go_
-  - convert.go
-  - ~~env.go~~
-  - gen.go
-  - genautocomplete.go
-  - genchromastyles.go
-  - gendoc.go
-  - gendocshelper.go
-  - genman.go
-  - hugo.go
-  - ~~hugo_windows.go~~
-  - import_jekyll.go
-  - _import_jekyll_test.go_
-  - ~~limit_darwin.go~~
-  - ~~limit_others.go~~
-  - list.go
-  - ~~list_config.go~~
-  - new.go
-  - _new_test.go_
-  - ~~release.go~~
-  - server.go
-  - ~~server_test.go~~
-  - _static_syncer.go_
-  - ~~version.go~~
+- ~~`main.go`~~
+- _`bufferpool/`_
+- _`cache/`_
+- `commands/`
+  - `benchmark.go`
+  - ~~`check.go`~~
+  - _`commandeer.go`_
+  - `convert.go`
+  - ~~`env.go`~~
+  - `gen.go`
+  - `genautocomplete.go`
+  - `genchromastyles.go`
+  - `gendoc.go`
+  - `gendocshelper.go`
+  - `genman.go`
+  - `hugo.go`
+  - ~~`hugo_windows.g`o~~
+  - `import_jekyll.go`
+  - _`import_jekyll_test.go`_
+  - ~~`limit_darwin.go`~~
+  - ~~`limit_others.go`~~
+  - `list.go`
+  - ~~`list_config.go`~~
+  - `new.go`
+  - _`new_test.go`_
+  - ~~`release.go`~~
+  - `server.go`
+  - ~~`server_test.g`o~~
+  - _`static_syncer.go`_
+  - ~~`version.go`~~

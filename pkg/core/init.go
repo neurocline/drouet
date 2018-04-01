@@ -17,10 +17,12 @@ package core
 import (
 	"io/ioutil"
 	"os"
+	"path/filepath"
 
-	jww "github.com/spf13/jwalterweatherman"
+	"github.com/neurocline/viper"
+
 	"github.com/spf13/afero"
-	"github.com/neurocline/viper" // private fork for now, until merge into mainline
+	jww "github.com/spf13/jwalterweatherman"
 )
 
 // NewHugo creates an instance of the top-level state for Hugo operation.
@@ -40,7 +42,7 @@ func NewHugo() *Hugo {
 type Hugo struct {
 	Logger *jww.Notepad
 	Config *viper.Viper // TBD do we want an interface here that we can override?
-	Fs *afero.Fs
+	Fs afero.Fs
 }
 
 // ----------------------------------------------------------------------------------------------
@@ -72,4 +74,15 @@ func (h *Hugo) Shutdown() int {
 	}
 
 	return 0
+}
+
+// This really doesn't belong here. Note that this doesn't work through the afero.Fs that
+// Hugo uses, it really is intended for local disk operation (e.g. creating a temp dir)
+func mkdir(x ...string) {
+	p := filepath.Join(x...)
+
+	err := os.MkdirAll(p, 0777) // before umask
+	if err != nil {
+		jww.FATAL.Fatalln(err)
+	}
 }

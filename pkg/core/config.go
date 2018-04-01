@@ -26,16 +26,22 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/neurocline/drouet/pkg/helpers"
+	"github.com/neurocline/drouet/pkg/hugofs"
+	"github.com/neurocline/drouet/pkg/utils"
+
 	"github.com/neurocline/viper"
+
+	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 
-	"github.com/neurocline/drouet/pkg/z"
+	//"github.com/neurocline/drouet/pkg/z"
 )
 
 // InitializeConfig creates a default config and then updates it with
 // values from a config file and from command-line flags.
 func InitializeConfig(h *Hugo, cmds ...*cobra.Command) (*viper.Viper, error) {
-	fmt.Fprintf(z.Log, "core.InitializeConfig\n%s\n", z.Stack())
+	//fmt.Fprintf(z.Log, "core.InitializeConfig\n%s\n", z.Stack())
 
 	// First, create a default config with Viper
 	v := viper.New()
@@ -53,20 +59,46 @@ func InitializeConfig(h *Hugo, cmds ...*cobra.Command) (*viper.Viper, error) {
 	}
 	//fmt.Printf("------------\nconfigFileSettings\n----\n%s", v.Spew())
 
-	// Then, add any values from command-line flags. We add all of them
-	// (TBD we need some aliasing here)
+	// Then, add any values from command-line flags. We add all of them.
+	// Note to self - figure out why we would ever want an array of *cobra.Command.
+	// TBD we need some aliasing here
 	for _, cmd := range cmds {
 		v.BindPFlags(cmd.Flags())
 		v.BindPFlags(cmd.PersistentFlags())
 	}
 	//fmt.Printf("------------\nadd flags\n----\n%s", v.Spew())
 
+	// Set some overrides to match Hugo behavior (these will probably
+	// go away). These are pointless, as far as I can tell, because flags are
+	// already the second-highest priority next to overrides.
+	// However, I probably need to not set these as strings, hmm? I need to
+	// preserve types.
+	for _, cmd := range cmds {
+		for _, flag := range []string{ "baseURL", "logI18nWarnings", "theme", "themesDir" } {
+			if cmd.Flags().Changed(flag) {
+				v.Set("themesDir", cmd.Flags().Lookup(flag).Value.String())
+			}
+		}
+	}
+
 	// Make sure cacheDir points to something useful
-//	if v.Get("cacheDir") == "" {
-//		v.Set("cacheDir", helpers.GetTempDir("hugo_cache", sourceFs))
-//	} else {
-//
-//	}
+	// TBD fix up helpers and utils references
+	var sourceFs afero.Fs = hugofs.Os
+	cacheDir := v.GetString("cacheDir")
+	if cacheDir != "" {
+		if helpers.FilePathSeparator != cacheDir[len(cacheDir)-1:] {
+			cacheDir = cacheDir + helpers.FilePathSeparator
+		}
+		isDir, err := helpers.DirExists(cacheDir, sourceFs)
+		utils.CheckErr(h.Logger, err)
+		if !isDir {
+			mkdir(cacheDir)
+		}
+		v.Set("cacheDir", cacheDir)
+	} else {
+		v.Set("cacheDir", helpers.GetTempDir("hugo_cache", sourceFs))
+	}
+	fmt.Printf("cacheDir=%s\n", v.GetString("cacheDir"))
 
 /*	// Check for deprecated settings being used
 	// useModTimeAsFallback is a deprecated config item
@@ -82,7 +114,7 @@ lastmod = ["lastmod" ,":fileModTime", ":default"]
 	}*/
 
 	//fmt.Printf("------------\nfinal state\n----\n%s", v.Spew())
-	fmt.Fprintf(z.Log, "---------\nViper config\n---------\n%s", v.Spew())
+	//fmt.Fprintf(z.Log, "---------\nViper config\n---------\n%s", v.Spew())
 
 	h.Config = v
 	return v, nil
@@ -213,15 +245,15 @@ func defaultSettings(v *viper.Viper) error {
 	v.SetDefault("watch", false)
 
 	// TBD put this back in with BlackFriday support code
-	v.SetDefault("blackFriday.smartypants", true)
-	v.SetDefault("blackFriday.angledQuotes", false)
-	v.SetDefault("blackFriday.smartypantsQuotesNBSP", false)
-	v.SetDefault("blackFriday.fractions", true)
-	v.SetDefault("blackFriday.hrefTargetBlank", false)
-	v.SetDefault("blackFriday.smartDashes", true)
-	v.SetDefault("blackFriday.latexDashes", true)
-	v.SetDefault("blackFriday.plainIDAnchors", true)
-	v.SetDefault("blackFriday.taskLists", true)
+	//v.SetDefault("blackFriday.smartypants", true)
+	//v.SetDefault("blackFriday.angledQuotes", false)
+	//v.SetDefault("blackFriday.smartypantsQuotesNBSP", false)
+	//v.SetDefault("blackFriday.fractions", true)
+	//v.SetDefault("blackFriday.hrefTargetBlank", false)
+	//v.SetDefault("blackFriday.smartDashes", true)
+	//v.SetDefault("blackFriday.latexDashes", true)
+	//v.SetDefault("blackFriday.plainIDAnchors", true)
+	//v.SetDefault("blackFriday.taskLists", true)
 
 	// TBD put this in with Pygments support code
 	// TBD if we don't use Pygments, should we set its defaults?
