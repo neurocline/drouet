@@ -15,8 +15,12 @@ package commands
 
 import (
 	"fmt"
+	"net"
+	"net/url"
+	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // Build "hugo server" command.
@@ -65,4 +69,60 @@ of a second, you will be able to save and see your changes nearly instantly.`,
 func (h *hugoCmd) server(cmd *cobra.Command, args []string) error {
 	fmt.Println("hugo server - hugo server code goes here")
 	return nil
+}
+
+// fixURL massages the baseURL into a form needed for serving
+// all pages correctly.
+func fixURL(cfg *viper.Viper, s string, port int, serverAppend bool) (string, error) {
+	fmt.Printf("baseURL='%s', port=%d, serverAppend=%v\n", s, port, serverAppend)
+
+	useLocalhost := false
+	if s == "" {
+		s = cfg.GetString("baseURL")
+		useLocalhost = true
+		fmt.Printf("baseURL='%s', useLocalhost=%v\n", s, useLocalhost)
+	}
+
+	if !strings.HasSuffix(s, "/") {
+		s = s + "/"
+		fmt.Printf("baseURL='%s'\n", s)
+	}
+
+	// do an initial parse of the input string
+	u, err := url.Parse(s)
+	if err != nil {
+		return "", err
+	}
+
+	// if no Host is defined, then assume that no schema or double-slash were
+	// present in the url.  Add a double-slash and make a best effort attempt.
+	if u.Host == "" && s != "/" {
+		s = "//" + s
+		fmt.Printf("baseURL='%s'\n", s)
+
+		u, err = url.Parse(s)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	if useLocalhost {
+		if u.Scheme == "https" {
+			u.Scheme = "http"
+		}
+		u.Host = "localhost"
+		fmt.Printf("url='%s'\n", u.String())
+	}
+
+	if serverAppend {
+		if strings.Contains(u.Host, ":") {
+			u.Host, _, err = net.SplitHostPort(u.Host)
+			if err != nil {
+				return "", fmt.Errorf("Failed to split baseURL hostpost: %s", err)
+			}
+		}
+		u.Host += fmt.Sprintf(":%d", port)
+	}
+
+	return u.String(), nil
 }

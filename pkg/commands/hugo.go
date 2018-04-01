@@ -69,6 +69,7 @@ func buildCommand(h *hugoCmd) *cobra.Command {
 	root.AddCommand(buildHugoImportCmd(h))
 	root.AddCommand(buildHugoListCmd(h))
 	root.AddCommand(buildHugoNewCmd(h))
+	root.AddCommand(buildHugoReleaseCmd(h).cmd)
 	root.AddCommand(buildHugoServerCmd(h))
 	root.AddCommand(buildHugoVersionCmd(h))
 	return root

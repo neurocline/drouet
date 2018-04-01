@@ -10,48 +10,43 @@ Done.
 
 - we don't call `runtime.GOMAXPROCS(runtime.NumCPU())` because this is the default as of Go 1.5
 - we make `commands.Execute()` do the work of "if error log then error return"
-
-Bits of code moved to `core/init.go`.
-
-Hugo called os.Exit from inner functions, Drouet does not do that, to ensure that
-clean shutdown can be carried out.
+- Bits of code moved to `core/init.go`.
+- Hugo called os.Exit from inner functions, Drouet does not do that, to ensure that clean shutdown can be carried out.
 
 All other package code is in the `pkg` directory.
 
 ## package commands
 
-In `pkg/commands/*`
-
-| file | status | also see |
-| ---- | ------ | -------- |
-| benchmark.go     | cmd |   |
-| ~~check.go~~     | ~~done~~ |   |
-| commandeer.go    |     |   |
-| convert.go       | cmd |   |
-| env.go           | cmd |   |
-| gen.go           | cmd |   |
-| genautocomplete.go |   | moved to gen.go |
-| genchromastyles.go |   | moved to gen.go |
-| gendoc.go        |     | moved to gen.go |
-| gendocshelper.go |     | moved to gen.go |
-| genman.go        |     | moved to gen.go |
-| hugo.go          | cmd, config |   |
-| hugo_windows.go  |     |   |
-| import_jekyll.go | cmd | moved to import.go |
-| import_jekyll_test.go  | cmd | moved to import.go |
-| ~~limit_darwin.go~~  | ~~done~~ | ~~moved to check_darwin.go~~ |
-| ~~limit_others.go~~  | ~~done~~ | ~~moved to check_notdarwin.go~~ |
-| list.go          | cmd |   |
-| list_config.go   | except InitializeConfig |  moved to config.go |
-| new.go           | cmd |   |
-| new_test.go      |     |   |
-| release.go       |     |   |
-| server.go        | cmd |   |
-| server_test.go   |     |   |
-| static_syncer.go |     |   |
-| ~~version.go~~   | ~~done~~ |   |
-
 `hugo/commands/*` ==> `drouet/pkg/commands/*`
+
+| hugo file | drouet file| Notes |
+| ---- | ------ | -------- |
+| benchmark.go         | benchmark.go         | cmd      |
+| ~~check.go~~         | ~~check.go~~         | ~~done~~ |
+| commandeer.go        |                      |          |
+| convert.go           | convert.go           | cmd      |
+| env.go               | env.go               | cmd      |
+| gen.go               | gen.go               | cmd      |
+| genautocomplete.go   | gen.go               | cmd      |
+| genchromastyles.go   | gen.go               | cmd      |
+| gendoc.go            | gen.go               | cmd      |
+| gendocshelper.go     | gen.go               | cmd      |
+| genman.go            | gen.go               | cmd      |
+| hugo.go              | hugo.go              | cmd, config |
+| ~~hugo_windows.go~~  | ~~hugo_windows.go~~  | ~~done~~ |
+| import_jekyll.go     | import.go            | cmd      |
+| import_jekyll_test.go|                      |          |
+| ~~limit_darwin.go~~  | ~~check_darwin.go~~  | not tested |
+| ~~limit_others.go~~ | ~~check_notdarwin.go~~| ~~done~~ |
+| list.go              | list.go              | cmd      |
+| list_config.go       | config.go            | except InitializeConfig |
+| new.go               | new.go               | cmd      |
+| new_test.go          |                      |          |
+| release.go           | release.go           | except releaser |
+| server.go            | server.go            | cmd      |
+| ~~server_test.go~~   | ~~server_test.go~~   | ~~done~~ |
+| static_syncer.go     |                      |          |
+| ~~version.go~~       | ~~version.go~~       | ~~done~~ |
 
 Each subcommand (verb) is moved to its own file. Some verbs have subcommands of their
 own, and for now, each verb subcommand is in the verb's file.
