@@ -45,8 +45,6 @@ func buildHugoConfigCmd(h *hugoCmd) *cobra.Command {
 // ----------------------------------------------------------------------------------------------
 
 func (h *hugoCmd) config(cmd *cobra.Command, args []string) error {
-	//fmt.Fprintf(z.Log, "commands.config\n%s\n", z.Stack())
-	//fmt.Println("hugo config - print config goes here")
 
 	// Load config
 	var err error
@@ -55,6 +53,39 @@ func (h *hugoCmd) config(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	fmt.Fprintf(z.Log, "commands.config()%s\n%s\n", z.Stack(), h.Config.Spew())
+
+	// If we have verbose config, then show config organized by origin
+	if h.Config.GetBool("verbose") {
+		return h.verboseConfig()
+	}
+
+	allSettings := h.Config.AllSettings()
+
+	var separator string
+	if allSettings["metadataformat"] == "toml" {
+		separator = " = "
+	} else {
+		separator = ": "
+	}
+
+	var keys []string
+	for k := range allSettings {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	for _, k := range keys {
+		kv := reflect.ValueOf(allSettings[k])
+		if kv.Kind() == reflect.String {
+			jww.FEEDBACK.Printf("%s%s\"%+v\"\n", k, separator, allSettings[k])
+		} else {
+			jww.FEEDBACK.Printf("%s%s%+v\n", k, separator, allSettings[k])
+		}
+	}
+
+	return nil
+}
+
+func (h *hugoCmd) verboseConfig() error {
 
 	// Show all config organized by origin
 	allSettings := h.Config.AllSettings()

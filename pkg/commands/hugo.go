@@ -104,17 +104,14 @@ Complete documentation is available at http://gohugo.io/.`,
 	cmd.PersistentFlags().SetAnnotation("config", cobra.BashCompFilenameExt, validConfigFilenames)
 	cmd.PersistentFlags().SetAnnotation("logFile", cobra.BashCompFilenameExt, []string{})
 
+	// Add flags for the "hugo" command
+	cmd.Flags().Bool("renderToMemory", false, "render to memory (useful for benchmark testing)")
+	cmd.Flags().BoolP("watch", "w", false, "watch filesystem for changes and recreate as needed")
+
 	// Add flags shared by builders: "hugo", "hugo server", "hugo benchmark"
 	initHugoBuilderFlags(cmd)
 
-	// Add flags shared by benchmarking: "hugo", "hugo benchmark"
-	initHugoBenchmarkFlags(cmd)
-
-	// Add flags unique to the "hugo" command
-	cmd.Flags().BoolP("watch", "w", false, "watch filesystem for changes and recreate as needed")
-
-	// Update flags to latest convention
-	// (TBD maybe we should be setting more aliases?)
+	// Rewrite flags to follow standards
 	cmd.SetGlobalNormalizationFunc(normalizeHugoFlags)
 
 	// We don't want usage spit out all the time (but we end up doing this
@@ -167,11 +164,6 @@ func initHugoBuilderFlags(cmd *cobra.Command) {
 	cmd.Flags().SetAnnotation("destination", cobra.BashCompSubdirsInDir, []string{})
 	cmd.Flags().SetAnnotation("source", cobra.BashCompSubdirsInDir, []string{})
 	cmd.Flags().SetAnnotation("theme", cobra.BashCompSubdirsInDir, []string{"themes"})
-}
-
-// Add flags shared by benchmarking: "hugo", "hugo benchmark"
-func initHugoBenchmarkFlags(cmd *cobra.Command) {
-	cmd.Flags().Bool("renderToMemory", false, "render to memory (only useful for benchmark testing)")
 }
 
 // normalizeHugoFlags facilitates transitions of Hugo command-line flags,

@@ -67,12 +67,12 @@ begin with "\_", for example. I could make it start with "0", I suppose.
 
 Done
 
+- hugo config
 - hugo version
 
 In process
 
 - hugo
-- hugo config
 
 TBD
 

@@ -15,9 +15,19 @@ package commands
 
 import (
 	"fmt"
+	"os"
+	"runtime"
+	"runtime/pprof"
+	"time"
+
+	"github.com/neurocline/drouet/pkg/core"
+	"github.com/neurocline/drouet/pkg/z"
 
 	"github.com/spf13/cobra"
+	jww "github.com/spf13/jwalterweatherman"
 )
+
+
 
 // Build "hugo benchmark" command.
 func buildHugoBenchmarkCmd(h *hugoCmd) *cobra.Command {
@@ -29,16 +39,14 @@ creating a benchmark.`,
 		RunE: h.benchmark,
 	}
 
-	// Add flags shared by builders: "hugo", "hugo server", "hugo benchmark"
-	initHugoBuilderFlags(cmd)
-
-	// Add flags shared by benchmarking: "hugo", "hugo benchmark"
-	initHugoBenchmarkFlags(cmd)
-
-	// Add flags unique to "hugo benchmark"
+	// Add flags for the "hugo benchmark" command
+	cmd.Flags().IntP("count", "n", 13, "number of times to build the site")
 	cmd.Flags().String("cpuprofile", "", "path/filename for the CPU profile file")
 	cmd.Flags().String("memprofile", "", "path/filename for the memory profile file")
-	cmd.Flags().IntP("count", "n", 13, "number of times to build the site")
+	cmd.Flags().Bool("renderToMemory", false, "render to memory (useful for benchmark testing)")
+
+	// Add flags shared by builders: "hugo", "hugo server", "hugo benchmark"
+	initHugoBuilderFlags(cmd)
 
 	return cmd
 }
@@ -46,6 +54,75 @@ creating a benchmark.`,
 // ----------------------------------------------------------------------------------------------
 
 func (h *hugoCmd) benchmark(cmd *cobra.Command, args []string) error {
-	fmt.Println("hugo benchmark - benchmark site goes here")
+
+	// Load config
+	var err error
+	h.Config, err = core.InitializeConfig(h.Hugo, cmd)
+	if err != nil {
+		return err
+	}
+	fmt.Fprintf(z.Log, "commands.benchmark()%s\n%s\n", z.Stack(), h.Config.Spew())
+
+	// If --memprofile=<FILE>, then create log file for memory profiling
+	var memProf *os.File
+	memProfileFile := h.Config.GetString("memprofile")
+	if memProfileFile != "" {
+		memProf, err = os.Create(memProfileFile)
+		if err != nil {
+			return err
+		}
+		defer memProf.Close()
+	}
+
+	// If --cpuprofile=<FILE>, then create log file for cpu profiling
+	var cpuProf *os.File
+	cpuProfileFile := h.Config.GetString("cpuprofile")
+	if cpuProfileFile != "" {
+		cpuProf, err = os.Create(cpuProfileFile)
+		if err != nil {
+			return err
+		}
+		defer cpuProf.Close()
+	}
+
+	// Get the baseline for memory allocations
+	var memStats runtime.MemStats
+	runtime.ReadMemStats(&memStats)
+	memAllocated := memStats.TotalAlloc
+	mallocs := memStats.Mallocs
+
+	// Start CPU profiling if requested
+	if cpuProf != nil {
+		pprof.StartCPUProfile(cpuProf)
+	}
+
+	// Build site N times, measuring total elapsed time
+	benchmarkTimes := h.Config.GetInt("count")
+	t := time.Now()
+	for i := 0; i < benchmarkTimes; i++ {
+		//if err = c.resetAndBuildSites(); err != nil {
+		//	return err
+		//}
+	}
+	totalTime := time.Since(t)
+
+	// Stop profiling and write results
+	if memProf != nil {
+		pprof.WriteHeapProfile(memProf)
+	}
+	if cpuProf != nil {
+		pprof.StopCPUProfile()
+	}
+
+	// Show runtime and allocations, averaged over N iterations
+	runtime.ReadMemStats(&memStats)
+	totalMemAllocated := memStats.TotalAlloc - memAllocated
+	totalMallocs := memStats.Mallocs - mallocs
+
+	jww.FEEDBACK.Println()
+	jww.FEEDBACK.Printf("Average time per operation: %vms\n", int(1000*totalTime.Seconds()/float64(benchmarkTimes)))
+	jww.FEEDBACK.Printf("Average memory allocated per operation: %vkB\n", totalMemAllocated/uint64(benchmarkTimes)/1024)
+	jww.FEEDBACK.Printf("Average allocations per operation: %v\n", totalMallocs/uint64(benchmarkTimes))
+
 	return nil
 }
