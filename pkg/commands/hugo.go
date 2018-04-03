@@ -17,9 +17,6 @@
 package commands
 
 import (
-	"fmt"
-	"regexp"
-
 	"github.com/neurocline/drouet/pkg/core"
 
 	"github.com/spf13/cobra"
@@ -31,7 +28,7 @@ import (
 func Execute() int {
 
 	// Do basic system init
-	core.Init()
+	core.GlobalInit()
 
 	// Build our root object and all command processors
 	hugo := core.NewHugo()
@@ -40,7 +37,7 @@ func Execute() int {
 	// Run the command processor; show usage message if there is an error
 	// (TBD clean this a bit, full usage is very long for some commands)
 	if c, err := root.cmd.ExecuteC(); err != nil {
-		if isUserError(err) {
+		if core.IsUserError(err) {
 			c.Println("")
 			c.Println(c.UsageString())
 		}
@@ -57,7 +54,7 @@ func buildCommand(hugo *core.Hugo) *hugoCmd {
 
 	// Create a new Hugo object and create the root "hugo" command
 	gohugo := buildHugoCommand(hugo)
-	cmd = gohugo.cmd
+	cmd := gohugo.cmd
 
 	// Add all the sub-commands (sub-commands of sub-commands will add
 	// their own children)
@@ -200,46 +197,9 @@ func (h *hugoCmd) hugo(cmd *cobra.Command, args []string) error {
 
 // ----------------------------------------------------------------------------------------------
 
-// commandError is an error used to signal different error situations in command handling.
-type commandError struct {
-	s         string
-	userError bool
+func (h *hugoCmd) Reset() {
+	//h.Hugo.HugoSites = nil
 }
-
-func (c commandError) Error() string {
-	return c.s
-}
-
-func (c commandError) isUserError() bool {
-	return c.userError
-}
-
-func newUserError(a ...interface{}) commandError {
-	return commandError{s: fmt.Sprintln(a...), userError: true}
-}
-
-func newSystemError(a ...interface{}) commandError {
-	return commandError{s: fmt.Sprintln(a...), userError: false}
-}
-
-func newSystemErrorF(format string, a ...interface{}) commandError {
-	return commandError{s: fmt.Sprintf(format, a...), userError: false}
-}
-
-// Catch some of the obvious user errors from Cobra.
-// We don't want to show the usage message for every error.
-// The below may be to generic. Time will show.
-var userErrorRegexp = regexp.MustCompile("argument|flag|shorthand")
-
-func isUserError(err error) bool {
-	if cErr, ok := err.(commandError); ok && cErr.isUserError() {
-		return true
-	}
-
-	return userErrorRegexp.MatchString(err.Error())
-}
-
-// ----------------------------------------------------------------------------------------------
 
 func (h *hugoCmd) resetAndBuildSites() (err error) {
 	if err = h.initSites(); err != nil {

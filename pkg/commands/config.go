@@ -59,8 +59,7 @@ func (h *hugoConfigCmd) config(cmd *cobra.Command, args []string) error {
 
 	// Load config
 	var err error
-	h.Config, err = core.InitializeConfig(h.Hugo, cmd)
-	if err != nil {
+	if err = h.Hugo.InitializeConfig(cmd); err != nil {
 		return err
 	}
 	fmt.Fprintf(z.Log, "commands.config()%s\n%s\n", z.Stack(), h.Config.Spew())

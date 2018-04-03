@@ -40,8 +40,10 @@ func NewHugo() *Hugo {
 }
 
 type Hugo struct {
+	//*hugolib.HugoSites
+
 	Logger *jww.Notepad
-	Config *viper.Viper // TBD do we want an interface here that we can override?
+	Config *viper.Viper
 	Fs afero.Fs
 }
 
@@ -49,7 +51,7 @@ type Hugo struct {
 
 // Init does global-level init like setting up logging.
 // If Init has an error, it exits with an error status.
-func Init() {
+func GlobalInit() {
 
 	// We want to have only as many goroutines as machine cores
 	// This is no longer necessary as of Go 1.5 (where the default

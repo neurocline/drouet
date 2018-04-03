@@ -36,17 +36,15 @@ var (
 
 // CurrentHugoVersion represents the current build version.
 // This should be the only one.
-func CurrentHugoVersion() HugoVersion {
-	return HugoVersion{
-		Number:     0.38,
-		PatchLevel: 1,
-		Suffix:     "-DEV",
-	}
+var CurrentHugoVersion = HugoVersion{
+	Number:     0.38,
+	PatchLevel: 0,
+	Suffix:     "-DEV",
 }
 
 // CurrentHugoGenerator returns the Hugo meta generator string
 func CurrentHugoGenerator() template.HTML {
-	s := fmt.Sprintf(`<meta name="generator" content="Hugo %s" />`, CurrentHugoVersion().String())
+	s := fmt.Sprintf(`<meta name="generator" content="Hugo %s" />`, CurrentHugoVersion.String())
 	return template.HTML(s)
 }
 

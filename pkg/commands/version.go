@@ -52,7 +52,7 @@ func (h *hugoVersionCmd) version(cmd *cobra.Command, args []string) error {
 
 func showVersion(Logger *jww.Notepad) {
 	// Create Hugo version string with optional commit hash
-	vers := fmt.Sprintf("%s", core.CurrentHugoVersion())
+	vers := fmt.Sprintf("%s", core.CurrentHugoVersion)
 	if core.CommitHash != "" {
 		vers = fmt.Sprintf("%s-%s", vers, strings.ToUpper(core.CommitHash))
 	}

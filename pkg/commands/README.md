@@ -97,18 +97,12 @@ func buildHugoCommand(hugo *core.Hugo) *hugoCmd {
     h.cmd = &cobra.Command{
         Use:   "hugo",
         Short: "hugo builds your site",
-        Long: `hugo is the main command, used to build your Hugo site.
-
-Hugo is a Fast and Flexible Static Site Generator
-built with love by spf13 and friends in Go.
-
-Complete documentation is available at http://gohugo.io/.`,
         RunE: h.hugo,
     }
 
     // Add flags for the "hugo" command
-    h.cmd.Flags().BoolVar(&h.renderToMemory, "renderToMemory", false, "render to memory (useful for benchmark testing)")
-    h.cmd.Flags().BoolVarP(&h.watch, "watch", "w", false, "watch filesystem for changes and recreate as needed")
+    h.cmd.Flags().BoolVar(&h.renderToMemory, "renderToMemory", false, "render to memory")
+    h.cmd.Flags().BoolVarP(&h.watch, "watch", "w", false, "watch filesystem)
 
     // Add flags shared by builders: "hugo", "hugo server", "hugo benchmark"
     addHugoBuilderFlags(h.cmd)
@@ -128,3 +122,16 @@ func (h *hugoCmd) hugo(cmd *cobra.Command, args []string) error {
     return nil
 }
 ```
+
+Each command handler function is a method value bound to `RunE`; this means its receiver is
+bound to the function set as `RunE`.
+
+This avoids all global variables, at least those required for passing information between the
+command-line and the various command-line handler functions. There are a few down sides at the
+moment:
+
+- persistent and shared flags aren't mirrored to struct variables
+- mildly repetitive code to set up each command-line object
+
+For top-level persistent variables, we could mirror these to the top-level `*core.Hugo` object;
+there is only one of these and it is a parameter to every command-line handler function.

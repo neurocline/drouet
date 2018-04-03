@@ -22,9 +22,12 @@ package core
 
 import (
 	"fmt"
+	"io/ioutil"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"github.com/neurocline/drouet/pkg/helpers"
 	"github.com/neurocline/drouet/pkg/hugofs"
@@ -34,50 +37,43 @@ import (
 
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
+	jww "github.com/spf13/jwalterweatherman"
 
 	//"github.com/neurocline/drouet/pkg/z"
 )
 
 // InitializeConfig creates a default config and then updates it with
 // values from a config file and from command-line flags.
-func InitializeConfig(h *Hugo, cmds ...*cobra.Command) (*viper.Viper, error) {
+func (h *Hugo) InitializeConfig(cmd *cobra.Command) error {
 	//fmt.Fprintf(z.Log, "core.InitializeConfig\n%s\n", z.Stack())
 
 	// First, create a default config with Viper
 	v := viper.New()
-	//fmt.Printf("------------\nviper.New()\n----\n%s", v.Spew())
 
 	// Get all the default values
 	if err := defaultSettings(v); err != nil {
-		return nil, err
+		return err
 	}
-	//fmt.Printf("------------\ndefaultSettings\n----\n%s", v.Spew())
 
 	// Then, load any config files we can find (there can be more than one)
-	if err := configFileSettings(v, cmds...); err != nil {
-		return nil, err
+	if err := configFileSettings(v, cmd); err != nil {
+		return err
 	}
-	//fmt.Printf("------------\nconfigFileSettings\n----\n%s", v.Spew())
 
 	// Then, add any values from command-line flags. We add all of them.
-	// Note to self - figure out why we would ever want an array of *cobra.Command.
-	// TBD we need some aliasing here
-	for _, cmd := range cmds {
-		v.BindPFlags(cmd.Flags())
-		v.BindPFlags(cmd.PersistentFlags())
-	}
-	//fmt.Printf("------------\nadd flags\n----\n%s", v.Spew())
+	v.BindPFlags(cmd.Flags())
+	v.BindPFlags(cmd.PersistentFlags())
 
 	// Set some overrides to match Hugo behavior (these will probably
 	// go away). These are pointless, as far as I can tell, because flags are
 	// already the second-highest priority next to overrides.
 	// However, I probably need to not set these as strings, hmm? I need to
 	// preserve types.
-	for _, cmd := range cmds {
-		for _, flag := range []string{ "baseURL", "logI18nWarnings", "theme", "themesDir" } {
-			if cmd.Flags().Changed(flag) {
-				v.Set("themesDir", cmd.Flags().Lookup(flag).Value.String())
-			}
+	// Hey, maybe this is overriding locale-specific values? Except lang flattening
+	// also uses set, so that can't be true.
+	for _, flag := range []string{ "baseURL", "logI18nWarnings", "theme", "themesDir" } {
+		if cmd.Flags().Changed(flag) {
+			v.Set("themesDir", cmd.Flags().Lookup(flag).Value.String())
 		}
 	}
 
@@ -100,38 +96,57 @@ func InitializeConfig(h *Hugo, cmds ...*cobra.Command) (*viper.Viper, error) {
 	}
 	fmt.Printf("cacheDir=%s\n", v.GetString("cacheDir"))
 
-/*	// Check for deprecated settings being used
+	// Check for deprecated settings being used
+	checkDeprecated(v, cmd)
+
+	// All done, remember our good config
+	h.Config = v
+
+	// Create logger now that we have config loaded (log config could have been
+	// set in a config file or environment variable)
+	if err := h.createLogger(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func checkDeprecated(v *viper.Viper, cmd *cobra.Command) {
+
 	// useModTimeAsFallback is a deprecated config item
 	// scheduled to be removed in Hugo 0.39
 	if v.GetBool("useModTimeAsFallback") {
-		helpers.Deprecated("Site config", "useModTimeAsFallback", `Replace with this in your config.toml:
+		msg := `Replace with this in your config.toml:
 
 [frontmatter]
 date = [ "date",":fileModTime", ":default"]
 lastmod = ["lastmod" ,":fileModTime", ":default"]
-`, false)
+`
+		Deprecated("Site config", "useModTimeAsFallback", msg, false)
+	}
 
-	}*/
-
-	//fmt.Printf("------------\nfinal state\n----\n%s", v.Spew())
-	//fmt.Fprintf(z.Log, "---------\nViper config\n---------\n%s", v.Spew())
-
-	h.Config = v
-	return v, nil
+	for _, key := range []string{ "uglyURLs", "pluralizeListTitles", "preserveTaxonomyNames", "canonifyURLs"} {
+		if cmd.Flags().Changed(key) {
+			msg := fmt.Sprintf(`Set "%s = true" in your config.toml.
+If you need to set this configuration value from the command line, set it via an OS environment variable: "HUGO_%s=true hugo"`, key, strings.ToUpper(key))
+			// Remove in Hugo 0.38
+			Deprecated("hugo", "--"+key+" flag", msg, true)
+		}
+	}
 }
 
-func configFileSettings(v *viper.Viper, cmds ...*cobra.Command) error {
+func configFileSettings(v *viper.Viper, cmd *cobra.Command) error {
 
 	// If --source was used on the command-line, then this points to the entire
 	// site directory and is where the config file is located. Note that --source
 	// has no effect if --config is used.
 	// TBD hey, Cobra, this dance is awkward. It should really be just
-	// basePath, changed = cmds[0].Flags().Get("source"). Or is there something
+	// basePath, changed = cmd.Flags().Get("source"). Or is there something
 	// even simpler? What about the Pythonesque
-	// basePath = cmds[0].Flags.Get("source", os.Getwd())? I like that.
+	// basePath = cmd.Flags.Get("source", os.Getwd())? I like that.
 	var basePath string
-	if cmds[0].Flags().Changed("source") {
-		basePath, _ = cmds[0].Flags().GetString("source")
+	if cmd.Flags().Changed("source") {
+		basePath, _ = cmd.Flags().GetString("source")
 		basePath, _ = filepath.Abs(basePath)
 	} else {
 		basePath, _ = os.Getwd()
@@ -143,8 +158,8 @@ func configFileSettings(v *viper.Viper, cmds ...*cobra.Command) error {
 	// least one entry in the slice, so we will always have at least one
 	// entry to pass to ReadInConfig
 	var configPath string
-	if cmds[0].Flags().Changed("config") {
-		configPath, _ = cmds[0].Flags().GetString("config")
+	if cmd.Flags().Changed("config") {
+		configPath, _ = cmd.Flags().GetString("config")
 	}
 	configs := strings.Split(configPath, ",")
 
@@ -265,4 +280,151 @@ func defaultSettings(v *viper.Viper) error {
 	v.SetDefault("pygmentsUseClassic", false)
 
 	return nil
+}
+
+// ----------------------------------------------------------------------------------------------
+
+func (h *Hugo) createLogger() error {
+	var (
+		logHandle       = ioutil.Discard
+		logFile         = h.Config.GetString("logFile")
+		verboseLog      = h.Config.GetBool("verboseLog")
+		logging         = h.Config.GetBool("log")
+		isLogging       = false
+	)
+
+	// Create a logfile if asked for directly or implicitly
+	var err error
+	if logFile != "" {
+		isLogging = true
+		logHandle, err = os.OpenFile(logFile, os.O_RDWR|os.O_APPEND|os.O_CREATE, 0666)
+		if err != nil {
+			return NewSystemError("Failed to open log file:", logFile, err)
+		}
+	} else if verboseLog || logging {
+		isLogging = true
+		logHandle, err = ioutil.TempFile("", "hugo")
+		if err != nil {
+			return NewSystemError(err)
+		}
+	}
+
+	// Set the appropriate logging level for console output
+	// must do --verbose --debug to get debug console out when logging
+	// must do --verbose --trace to get trace console out when logging
+	var verbose = h.Config.GetBool("verbose")
+	var trace = h.Config.GetBool("trace")
+	var debug = h.Config.GetBool("debug")
+	var quiet = h.Config.GetBool("quiet")
+
+	var stdoutThreshold = jww.LevelError
+	switch {
+	case quiet:
+	case (!isLogging || verbose) && trace:
+		stdoutThreshold = jww.LevelTrace
+	case (!isLogging || verbose) && debug:
+		stdoutThreshold = jww.LevelDebug
+	case verbose:
+		stdoutThreshold = jww.LevelInfo
+	}
+
+	// Set the appropriate logging level for file output (quiet is ignored here)
+	// Note 1: verboseLog should be round-tripped to config so it can be set in config
+	// Note 2: log vs logging should be resolved so it can round-trip to config
+	var logThreshold = jww.LevelWarn
+	switch {
+	case verboseLog && trace:
+		logThreshold = jww.LevelTrace
+	case verboseLog && debug:
+		logThreshold = jww.LevelDebug
+	case verboseLog:
+		logThreshold = jww.LevelInfo
+	}
+
+	// The global logger is used in some few cases.
+	jww.SetLogOutput(logHandle)
+	jww.SetLogThreshold(logThreshold)
+	jww.SetStdoutThreshold(stdoutThreshold)
+	InitDistinctLoggers()
+
+	h.Logger = jww.NewNotepad(stdoutThreshold, logThreshold, os.Stdout, logHandle, "", log.Ldate|log.Ltime)
+	return nil
+}
+
+// InitLoggers sets up the global distinct loggers.
+func InitDistinctLoggers() {
+	DistinctErrorLog = NewDistinctErrorLogger()
+	DistinctWarnLog = NewDistinctWarnLogger()
+	DistinctFeedbackLog = NewDistinctFeedbackLogger()
+}
+
+var (
+	// DistinctErrorLog can be used to avoid spamming the logs with errors.
+	DistinctErrorLog *DistinctLogger = NewDistinctErrorLogger()
+
+	// DistinctWarnLog can be used to avoid spamming the logs with warnings.
+	DistinctWarnLog *DistinctLogger = NewDistinctWarnLogger()
+
+	// DistinctFeedbackLog can be used to avoid spamming the logs with info messages.
+	DistinctFeedbackLog *DistinctLogger = NewDistinctFeedbackLogger()
+)
+
+// NewDistinctErrorLogger creates a new DistinctLogger that logs ERRORs
+func NewDistinctErrorLogger() *DistinctLogger {
+	return &DistinctLogger{m: make(map[string]bool), logger: jww.ERROR}
+}
+
+// NewDistinctWarnLogger creates a new DistinctLogger that logs WARNs
+func NewDistinctWarnLogger() *DistinctLogger {
+	return &DistinctLogger{m: make(map[string]bool), logger: jww.WARN}
+}
+
+// NewDistinctFeedbackLogger creates a new DistinctLogger that can be used
+// to give feedback to the user while not spamming with duplicates.
+func NewDistinctFeedbackLogger() *DistinctLogger {
+	return &DistinctLogger{m: make(map[string]bool), logger: jww.FEEDBACK}
+}
+
+// DistinctLogger ignores duplicate log statements.
+type DistinctLogger struct {
+	sync.RWMutex
+	logger logPrinter
+	m      map[string]bool
+}
+
+type logPrinter interface {
+	// Println is the only common method that works in all of JWWs loggers.
+	Println(a ...interface{})
+}
+
+// Println will log the string returned from fmt.Sprintln given the arguments,
+// but not if it has been logged before.
+func (l *DistinctLogger) Println(v ...interface{}) {
+	// fmt.Sprint doesn't add space between string arguments
+	logStatement := strings.TrimSpace(fmt.Sprintln(v...))
+	l.print(logStatement)
+}
+
+// Printf will log the string returned from fmt.Sprintf given the arguments,
+// but not if it has been logged before.
+// Note: A newline is appended.
+func (l *DistinctLogger) Printf(format string, v ...interface{}) {
+	logStatement := fmt.Sprintf(format, v...)
+	l.print(logStatement)
+}
+
+func (l *DistinctLogger) print(logStatement string) {
+	l.RLock()
+	if l.m[logStatement] {
+		l.RUnlock()
+		return
+	}
+	l.RUnlock()
+
+	l.Lock()
+	if !l.m[logStatement] {
+		l.logger.Println(logStatement)
+		l.m[logStatement] = true
+	}
+	l.Unlock()
 }

@@ -64,11 +64,10 @@ type hugoBenchmarkCmd struct {
 }
 
 func (h *hugoBenchmarkCmd) benchmark(cmd *cobra.Command, args []string) error {
+	var err error
 
 	// Load config
-	var err error
-	h.Config, err = core.InitializeConfig(h.Hugo, cmd)
-	if err != nil {
+	if err = h.Hugo.InitializeConfig(h.cmd); err != nil {
 		return err
 	}
 	fmt.Fprintf(z.Log, "commands.benchmark()%s\n%s\n", z.Stack(), h.Config.Spew())
