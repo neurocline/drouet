@@ -16,12 +16,16 @@ package commands
 import (
 	"fmt"
 
+	"github.com/neurocline/drouet/pkg/core"
+
 	"github.com/spf13/cobra"
 )
 
 // Build "hugo env" command.
-func buildHugoGenCmd(h *hugoCmd) *cobra.Command {
-	cmd := &cobra.Command{
+func buildHugoGenCmd(hugo *core.Hugo) *hugoGenCmd {
+	h := &hugoGenCmd{Hugo: hugo}
+
+	h.cmd = &cobra.Command{
 		Use:   "gen",
 		Short: "A collection of several useful generators.",
 		RunE:  nil,
@@ -29,17 +33,19 @@ func buildHugoGenCmd(h *hugoCmd) *cobra.Command {
 
 	// This is lame - you need to add a command before you can add
 	// its subcommands. This should be fixed.
-	cmd.AddCommand(buildHugoGenAutocompleteCmd(h))
-	cmd.AddCommand(buildHugoGenDocCmd(h))
-	cmd.AddCommand(buildHugoGenManCmd(h))
-	cmd.AddCommand(buildHugoGenDocsHelperCmd(h).cmd)
-	cmd.AddCommand(buildHugoGenChromaStyles(h).cmd)
+	h.cmd.AddCommand(buildHugoGenAutocompleteCmd(hugo).cmd)
+	h.cmd.AddCommand(buildHugoGenDocCmd(hugo).cmd)
+	h.cmd.AddCommand(buildHugoGenManCmd(hugo).cmd)
+	h.cmd.AddCommand(buildHugoGenDocsHelperCmd(hugo).cmd)
+	h.cmd.AddCommand(buildHugoGenChromaStyles(hugo).cmd)
 
-	return cmd
+	return h
 }
 
-func buildHugoGenAutocompleteCmd(h *hugoCmd) *cobra.Command {
-	cmd := &cobra.Command{
+func buildHugoGenAutocompleteCmd(hugo *core.Hugo) *hugoGenAutocompleteCmd {
+	h := &hugoGenAutocompleteCmd{Hugo: hugo}
+
+	h.cmd = &cobra.Command{
 		Use:   "autocomplete",
 		Short: "Generate shell autocompletion script for Hugo",
 		Long: `Generates a shell autocompletion script for Hugo.
@@ -63,17 +69,19 @@ or just source them in directly:
 	}
 
 	// I think these are being misused
-	cmd.PersistentFlags().StringP("completionfile", "", "/etc/bash_completion.d/hugo.sh", "autocompletion file")
-	cmd.PersistentFlags().StringP("type", "", "bash", "autocompletion type (currently only bash supported)")
+	h.cmd.PersistentFlags().StringP("completionfile", "", "/etc/bash_completion.d/hugo.sh", "autocompletion file")
+	h.cmd.PersistentFlags().StringP("type", "", "bash", "autocompletion type (currently only bash supported)")
 
 	// For bash-completion
-	cmd.PersistentFlags().SetAnnotation("completionfile", cobra.BashCompFilenameExt, []string{})
+	h.cmd.PersistentFlags().SetAnnotation("completionfile", cobra.BashCompFilenameExt, []string{})
 
-	return cmd
+	return h
 }
 
-func buildHugoGenDocCmd(h *hugoCmd) *cobra.Command {
-	cmd := &cobra.Command{
+func buildHugoGenDocCmd(hugo *core.Hugo) *hugoGenDocCmd {
+	h := &hugoGenDocCmd{Hugo: hugo}
+
+	h.cmd = &cobra.Command{
 		Use:   "doc",
 		Short: "Generate Markdown documentation for the Hugo CLI.",
 		Long: `Generate Markdown documentation for the Hugo CLI.
@@ -86,16 +94,18 @@ for rendering in Hugo.`,
 		RunE: h.genDoc,
 	}
 
-	cmd.PersistentFlags().String("dir", "/tmp/hugodoc/", "the directory to write the doc.")
+	h.cmd.PersistentFlags().String("dir", "/tmp/hugodoc/", "the directory to write the doc.")
 
 	// For bash-completion
-	cmd.PersistentFlags().SetAnnotation("dir", cobra.BashCompSubdirsInDir, []string{})
+	h.cmd.PersistentFlags().SetAnnotation("dir", cobra.BashCompSubdirsInDir, []string{})
 
-	return cmd
+	return h
 }
 
-func buildHugoGenManCmd(h *hugoCmd) *cobra.Command {
-	cmd := &cobra.Command{
+func buildHugoGenManCmd(hugo *core.Hugo) *hugoGenManCmd {
+	h := &hugoGenManCmd{Hugo: hugo}
+
+	h.cmd = &cobra.Command{
 		Use:   "man",
 		Short: "Generate man pages for the Hugo CLI",
 		Long: `This command automatically generates up-to-date man pages of Hugo's
@@ -104,92 +114,110 @@ in the "man" directory under the current directory.`,
 		RunE: h.genMan,
 	}
 
-	cmd.PersistentFlags().String("dir", "man/", "the directory to write the man pages.")
+	h.cmd.PersistentFlags().String("dir", "man/", "the directory to write the man pages.")
 
 	// For bash-completion
-	cmd.PersistentFlags().SetAnnotation("dir", cobra.BashCompSubdirsInDir, []string{})
+	h.cmd.PersistentFlags().SetAnnotation("dir", cobra.BashCompSubdirsInDir, []string{})
 
-	return cmd
+	return h
 }
 
-func buildHugoGenDocsHelperCmd(h *hugoCmd) *genDocsHelper {
-	g := &genDocsHelper{}
+func buildHugoGenDocsHelperCmd(hugo *core.Hugo) *hugoGenDocsHelperCmd {
+	h := &hugoGenDocsHelperCmd{Hugo: hugo}
 
-	g.cmd = &cobra.Command{
+	h.cmd = &cobra.Command{
 		Use:    "docshelper",
 		Short:  "Generate some data files for the Hugo docs.",
 		Hidden: true,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return g.generate(h)
-		},
+		RunE:  h.generate,
 	}
 
 	// Add inherited flag, although I think this is a mistake, there's
 	// no sub-commands for this to inherit
-	g.cmd.PersistentFlags().StringVarP(&g.target, "dir", "", "docs/data", "data dir")
+	h.cmd.PersistentFlags().StringVarP(&h.target, "dir", "", "docs/data", "data dir")
 
-	// I bet this could safely return g.cmd
-	return g
+	return h
 }
 
-func buildHugoGenChromaStyles(h *hugoCmd) *genChromaStyles {
-	g := &genChromaStyles{}
+func buildHugoGenChromaStyles(hugo *core.Hugo) *hugoGenChromaStylesCmd {
+	h := &hugoGenChromaStylesCmd{Hugo: hugo}
 
-	g.cmd = &cobra.Command{
+	h.cmd = &cobra.Command{
 		Use:   "chromastyles",
 		Short: "Generate CSS stylesheet for the Chroma code highlighter",
 		Long: `Generate CSS stylesheet for the Chroma code highlighter for a given style.
 This stylesheet is needed if pygmentsUseClasses is enabled in config.
 
 See https://help.farbox.com/pygments.html for preview of available styles`,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return g.generate(h)
-		},
+		RunE: h.generate,
 	}
 
 	// Add inherited flag, although I think this is a mistake, there's
 	// no sub-commands for this to inherit
-	g.cmd.PersistentFlags().StringVar(&g.style, "style", "friendly", "highlighter style (see https://help.farbox.com/pygments.html)")
-	g.cmd.PersistentFlags().StringVar(&g.highlightStyle, "highlightStyle", "bg:#ffffcc", "style used for highlighting lines (see https://github.com/alecthomas/chroma)")
-	g.cmd.PersistentFlags().StringVar(&g.linesStyle, "linesStyle", "", "style used for line numbers (see https://github.com/alecthomas/chroma)")
+	h.cmd.PersistentFlags().StringVar(&h.style, "style", "friendly", "highlighter style (see https://help.farbox.com/pygments.html)")
+	h.cmd.PersistentFlags().StringVar(&h.highlightStyle, "highlightStyle", "bg:#ffffcc", "style used for highlighting lines (see https://github.com/alecthomas/chroma)")
+	h.cmd.PersistentFlags().StringVar(&h.linesStyle, "linesStyle", "", "style used for line numbers (see https://github.com/alecthomas/chroma)")
 
-	// I bet this could safely return g.cmd
-	return g
+	return h
 }
 
 // ----------------------------------------------------------------------------------------------
 
-func (h *hugoCmd) genAutocomplete(cmd *cobra.Command, args []string) error {
+type hugoGenCmd struct {
+	*core.Hugo
+	cmd *cobra.Command
+}
+
+type hugoGenAutocompleteCmd struct {
+	*core.Hugo
+	cmd *cobra.Command
+}
+
+func (h *hugoGenAutocompleteCmd) genAutocomplete(cmd *cobra.Command, args []string) error {
 	fmt.Println("hugo gen autocomplete - hugo gen autocomplete code goes here")
 	return nil
 }
 
-func (h *hugoCmd) genDoc(cmd *cobra.Command, args []string) error {
+type hugoGenDocCmd struct {
+	*core.Hugo
+	cmd *cobra.Command
+}
+
+func (h *hugoGenDocCmd) genDoc(cmd *cobra.Command, args []string) error {
 	fmt.Println("hugo gen doc - hugo gen doc code goes here")
 	return nil
 }
 
-func (h *hugoCmd) genMan(cmd *cobra.Command, args []string) error {
+type hugoGenManCmd struct {
+	*core.Hugo
+	cmd *cobra.Command
+}
+
+func (h *hugoGenManCmd) genMan(cmd *cobra.Command, args []string) error {
 	fmt.Println("hugo gen man - hugo gen man code goes here")
 	return nil
 }
 
-type genDocsHelper struct {
-	target string
+type hugoGenDocsHelperCmd struct {
+	*core.Hugo
 	cmd    *cobra.Command
+
+	target string
 }
 
-func (g *genDocsHelper) generate(h *hugoCmd) error {
+func (h *hugoGenDocsHelperCmd) generate(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-type genChromaStyles struct {
+type hugoGenChromaStylesCmd struct {
+	*core.Hugo
+	cmd            *cobra.Command
+
 	style          string
 	highlightStyle string
 	linesStyle     string
-	cmd            *cobra.Command
 }
 
-func (g *genChromaStyles) generate(h *hugoCmd) error {
+func (h *hugoGenChromaStylesCmd) generate(cmd *cobra.Command, args []string) error {
 	return nil
 }

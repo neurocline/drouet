@@ -16,11 +16,18 @@
 package commands
 
 import (
+	"github.com/neurocline/drouet/pkg/core"
+
 	"github.com/spf13/cobra"
 )
 
-func buildHugoCheckUlimitCmd(h *hugoCmd) *cobra.Command {
+func buildHugoCheckUlimitCmd(hugo *core.Hugo) *hugoCheckUlimitCmd {
 	return nil
+}
+
+type hugoCheckUlimitCmd struct {
+	*core.Hugo
+	cmd *cobra.Command
 }
 
 func tweakLimit() {

@@ -18,6 +18,7 @@ package commands
 
 import (
 	"fmt"
+	"regexp"
 
 	"github.com/neurocline/drouet/pkg/core"
 
@@ -26,28 +27,23 @@ import (
 	"github.com/spf13/pflag"
 )
 
-// Wrap the core.Hugo type so we can declare methods that take a *core.Hugo receiver
-type hugoCmd struct {
-	*core.Hugo
-}
-
 // Execute builds a command processor and runs the user command.
 func Execute() int {
 
 	// Do basic system init
 	core.Init()
 
-	// Create Hugo object to hold Hugo state, and build command processor
-	// (we pass the Hugo object in to every subcommand processor so each
-	// subcommand has access to the Hugo object).
-	hugo := &hugoCmd{core.NewHugo()}
-	cmd := buildCommand(hugo)
+	// Build our root object and all command processors
+	hugo := core.NewHugo()
+	root := buildCommand(hugo)
 
 	// Run the command processor; show usage message if there is an error
 	// (TBD clean this a bit, full usage is very long for some commands)
-	if c, err := cmd.ExecuteC(); err != nil {
-		c.Println("")
-		c.Println(c.UsageString())
+	if c, err := root.cmd.ExecuteC(); err != nil {
+		if isUserError(err) {
+			c.Println("")
+			c.Println(c.UsageString())
+		}
 		return -1
 	}
 
@@ -57,39 +53,28 @@ func Execute() int {
 
 // Build the Hugo command - root and all its children
 // (every other command (verb) is attached as a child command)
-func buildCommand(h *hugoCmd) *cobra.Command {
-	root := buildHugoCommand(h)
+func buildCommand(hugo *core.Hugo) *hugoCmd {
 
-	root.AddCommand(buildHugoBenchmarkCmd(h))
-	root.AddCommand(buildHugoCheckCmd(h))
-	root.AddCommand(buildHugoConfigCmd(h))
-	root.AddCommand(buildHugoConvertCmd(h))
-	root.AddCommand(buildHugoEnvCmd(h))
-	root.AddCommand(buildHugoGenCmd(h))
-	root.AddCommand(buildHugoImportCmd(h))
-	root.AddCommand(buildHugoListCmd(h))
-	root.AddCommand(buildHugoNewCmd(h))
-	root.AddCommand(buildHugoReleaseCmd(h).cmd)
-	root.AddCommand(buildHugoServerCmd(h))
-	root.AddCommand(buildHugoVersionCmd(h))
-	return root
-}
+	// Create a new Hugo object and create the root "hugo" command
+	gohugo := buildHugoCommand(hugo)
+	cmd = gohugo.cmd
 
-// Build Hugo root command.
-func buildHugoCommand(h *hugoCmd) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "hugo",
-		Short: "hugo builds your site",
-		Long: `hugo is the main command, used to build your Hugo site.
+	// Add all the sub-commands (sub-commands of sub-commands will add
+	// their own children)
+	cmd.AddCommand(buildHugoBenchmarkCmd(hugo).cmd)
+	cmd.AddCommand(buildHugoCheckCmd(hugo).cmd)
+	cmd.AddCommand(buildHugoConfigCmd(hugo).cmd)
+	cmd.AddCommand(buildHugoConvertCmd(hugo).cmd)
+	cmd.AddCommand(buildHugoEnvCmd(hugo).cmd)
+	cmd.AddCommand(buildHugoGenCmd(hugo).cmd)
+	cmd.AddCommand(buildHugoImportCmd(hugo).cmd)
+	cmd.AddCommand(buildHugoListCmd(hugo).cmd)
+	cmd.AddCommand(buildHugoNewCmd(hugo).cmd)
+	cmd.AddCommand(buildHugoReleaseCmd(hugo).cmd)
+	cmd.AddCommand(buildHugoServerCmd(hugo).cmd)
+	cmd.AddCommand(buildHugoVersionCmd(hugo).cmd)
 
-Hugo is a Fast and Flexible Static Site Generator
-built with love by spf13 and friends in Go.
-
-Complete documentation is available at http://gohugo.io/.`,
-		RunE: h.hugo,
-	}
-
-	// Global flags apply to all commands
+	// Add global flags apply to all commands
 	cmd.PersistentFlags().Bool("debug", false, "debug output")
 	cmd.PersistentFlags().String("config", "", "config file (default: ./config.(yaml|json|toml))")
 	cmd.PersistentFlags().Bool("log", false, "enable Logging")
@@ -98,34 +83,25 @@ Complete documentation is available at http://gohugo.io/.`,
 	cmd.PersistentFlags().BoolP("verbose", "v", false, "verbose output")
 	cmd.PersistentFlags().Bool("verboseLog", false, "verbose logging")
 
-	// Set bash-completion
-	// Each flag must first be defined before using the SetAnnotation() call.
+	// Set bash-completion on a few of our global flags
 	validConfigFilenames := []string{"json", "js", "yaml", "yml", "toml", "tml"}
 	cmd.PersistentFlags().SetAnnotation("config", cobra.BashCompFilenameExt, validConfigFilenames)
 	cmd.PersistentFlags().SetAnnotation("logFile", cobra.BashCompFilenameExt, []string{})
 
-	// Add flags for the "hugo" command
-	cmd.Flags().Bool("renderToMemory", false, "render to memory (useful for benchmark testing)")
-	cmd.Flags().BoolP("watch", "w", false, "watch filesystem for changes and recreate as needed")
-
-	// Add flags shared by builders: "hugo", "hugo server", "hugo benchmark"
-	initHugoBuilderFlags(cmd)
-
-	// Rewrite flags to follow standards
+	// Rewrite flags to follow standards (e.g. change --baseUrl into --baseURL)
 	cmd.SetGlobalNormalizationFunc(normalizeHugoFlags)
 
 	// We don't want usage spit out all the time (but we end up doing this
-	// ourselves, so I'm not sure exactly what this is for)
+	// ourselves, so I'm not sure exactly what this is for).
+	// Note - this is automatically inherited, so setting it on the root
+	// command means all sub-commands are silenced too.
 	cmd.SilenceUsage = true
 
-	//hugoCmdV = cmd
-	return cmd
+	return gohugo
 }
 
-// ----------------------------------------------------------------------------------------------
-
 // Add flags shared by builders: "hugo", "hugo server", "hugo benchmark"
-func initHugoBuilderFlags(cmd *cobra.Command) {
+func addHugoBuilderFlags(cmd *cobra.Command) {
 	cmd.Flags().StringP("baseURL", "b", "", "hostname (and path) to the root, e.g. http://spf13.com/")
 	cmd.Flags().BoolP("buildDrafts", "D", false, "include content marked as draft")
 	cmd.Flags().BoolP("buildExpired", "E", false, "include expired content")
@@ -182,9 +158,100 @@ func normalizeHugoFlags(f *pflag.FlagSet, name string) pflag.NormalizedName {
 
 // ----------------------------------------------------------------------------------------------
 
-// "hugo" with no verb is "hugo build", build a site
+// Build Hugo root command.
+func buildHugoCommand(hugo *core.Hugo) *hugoCmd {
+	h := &hugoCmd{Hugo: hugo}
+
+	h.cmd = &cobra.Command{
+		Use:   "hugo",
+		Short: "hugo builds your site",
+		Long: `hugo is the main command, used to build your Hugo site.
+
+Hugo is a Fast and Flexible Static Site Generator
+built with love by spf13 and friends in Go.
+
+Complete documentation is available at http://gohugo.io/.`,
+		RunE: h.hugo,
+	}
+
+	// Add flags for the "hugo" command
+	h.cmd.Flags().BoolVar(&h.renderToMemory, "renderToMemory", false, "render to memory (useful for benchmark testing)")
+	h.cmd.Flags().BoolVarP(&h.watch, "watch", "w", false, "watch filesystem for changes and recreate as needed")
+
+	// Add flags shared by builders: "hugo", "hugo server", "hugo benchmark"
+	addHugoBuilderFlags(h.cmd)
+
+	return h
+}
+
+// ----------------------------------------------------------------------------------------------
+
+type hugoCmd struct {
+	*core.Hugo
+	cmd *cobra.Command
+
+	renderToMemory bool
+	watch bool
+}
+
 func (h *hugoCmd) hugo(cmd *cobra.Command, args []string) error {
-	fmt.Println("hugo - build site goes here")
-	fmt.Printf("Hugo: %+v\n", *h.Hugo)
+	return nil
+}
+
+// ----------------------------------------------------------------------------------------------
+
+// commandError is an error used to signal different error situations in command handling.
+type commandError struct {
+	s         string
+	userError bool
+}
+
+func (c commandError) Error() string {
+	return c.s
+}
+
+func (c commandError) isUserError() bool {
+	return c.userError
+}
+
+func newUserError(a ...interface{}) commandError {
+	return commandError{s: fmt.Sprintln(a...), userError: true}
+}
+
+func newSystemError(a ...interface{}) commandError {
+	return commandError{s: fmt.Sprintln(a...), userError: false}
+}
+
+func newSystemErrorF(format string, a ...interface{}) commandError {
+	return commandError{s: fmt.Sprintf(format, a...), userError: false}
+}
+
+// Catch some of the obvious user errors from Cobra.
+// We don't want to show the usage message for every error.
+// The below may be to generic. Time will show.
+var userErrorRegexp = regexp.MustCompile("argument|flag|shorthand")
+
+func isUserError(err error) bool {
+	if cErr, ok := err.(commandError); ok && cErr.isUserError() {
+		return true
+	}
+
+	return userErrorRegexp.MatchString(err.Error())
+}
+
+// ----------------------------------------------------------------------------------------------
+
+func (h *hugoCmd) resetAndBuildSites() (err error) {
+	if err = h.initSites(); err != nil {
+		return
+	}
+	if !h.Config.GetBool("quiet") {
+		h.Logger.FEEDBACK.Println("Started building sites ...")
+	}
+	//return Hugo.Build(hugolib.BuildCfg{ResetState: true})
+	return nil
+}
+
+func (h *hugoCmd) initSites() error {
 	return nil
 }

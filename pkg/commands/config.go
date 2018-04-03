@@ -27,24 +27,35 @@ import (
 )
 
 // Build "hugo config" command.
-func buildHugoConfigCmd(h *hugoCmd) *cobra.Command {
-	cmd := &cobra.Command{
+func buildHugoConfigCmd(hugo *core.Hugo) *hugoConfigCmd {
+	h := &hugoConfigCmd{Hugo: hugo}
+
+	h.cmd = &cobra.Command{
 		Use:   "config",
 		Short: "Print the site configuration",
 		Long:  `Print the site configuration, both default and custom settings.`,
 		RunE:  h.config,
 	}
 
-	cmd.Flags().StringP("source", "s", "", "filesystem path to read files relative from")
-	cmd.Flags().StringP("theme", "t", "", "theme to use (located in /themes/THEMENAME/)")
-	cmd.Flags().String("themesDir", "", "filesystem path to themes directory")
+	h.cmd.Flags().StringVarP(&h.source, "source", "s", "", "filesystem path to read files relative from")
+	h.cmd.Flags().StringVarP(&h.theme, "theme", "t", "", "theme to use (located in /themes/THEMENAME/)")
+	h.cmd.Flags().StringVar(&h.themesDir, "themesDir", "", "filesystem path to themes directory")
 
-	return cmd
+	return h
 }
 
 // ----------------------------------------------------------------------------------------------
 
-func (h *hugoCmd) config(cmd *cobra.Command, args []string) error {
+type hugoConfigCmd struct {
+	*core.Hugo
+	cmd *cobra.Command
+
+	source string
+	theme string
+	themesDir string
+}
+
+func (h *hugoConfigCmd) config(cmd *cobra.Command, args []string) error {
 
 	// Load config
 	var err error
@@ -85,7 +96,7 @@ func (h *hugoCmd) config(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func (h *hugoCmd) verboseConfig() error {
+func (h *hugoConfigCmd) verboseConfig() error {
 
 	// Show all config organized by origin
 	allSettings := h.Config.AllSettings()

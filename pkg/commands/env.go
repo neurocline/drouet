@@ -16,26 +16,35 @@ package commands
 import (
 	"runtime"
 
+	"github.com/neurocline/drouet/pkg/core"
+
 	"github.com/spf13/cobra"
 	jww "github.com/spf13/jwalterweatherman"
 )
 
 // Build "hugo env" command.
-func buildHugoEnvCmd(h *hugoCmd) *cobra.Command {
-	cmd := &cobra.Command{
+func buildHugoEnvCmd(hugo *core.Hugo) *hugoEnvCmd {
+	h := &hugoEnvCmd{Hugo: hugo}
+
+	h.cmd = &cobra.Command{
 		Use:   "env",
 		Short: "Print Hugo version and environment info",
 		Long:  `Print Hugo version and environment info. This is useful in Hugo bug reports.`,
 		RunE:  h.env,
 	}
 
-	return cmd
+	return h
 }
 
 // ----------------------------------------------------------------------------------------------
 
-func (h *hugoCmd) env(cmd *cobra.Command, args []string) error {
-	h.version(cmd, args)
+type hugoEnvCmd struct {
+	*core.Hugo
+	cmd *cobra.Command
+}
+
+func (h *hugoEnvCmd) env(cmd *cobra.Command, args []string) error {
+	showVersion(h.Hugo.Logger)
 	jww.FEEDBACK.Printf("GOOS=%q\n", runtime.GOOS)
 	jww.FEEDBACK.Printf("GOARCH=%q\n", runtime.GOARCH)
 	jww.FEEDBACK.Printf("GOVERSION=%q\n", runtime.Version())

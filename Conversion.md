@@ -21,9 +21,9 @@ All other package code is in the `pkg` directory.
 
 | hugo file | drouet file| Notes |
 | ---- | ------ | -------- |
-| `benchmark.go`         | `benchmark.go`         | cmd      |
+| ~~`benchmark.go`~~     | ~~`benchmark.go`~~     | cmd      |
 | ~~`check.go`~~         | ~~`check.go`~~         | ~~done~~ |
-| `commandeer.go`        |                      |          |
+| `commandeer.go`        |                        |          |
 | `convert.go`           | `convert.go`           | cmd      |
 | ~~`env.go`~~           | ~~`env.go`~~           | ~~done~~ |
 | `gen.go`               | `gen.go`               | cmd      |
@@ -67,6 +67,7 @@ begin with "\_", for example. I could make it start with "0", I suppose.
 
 Done
 
+- hugo benchmark
 - hugo config
 - hugo version
 
@@ -76,7 +77,6 @@ In process
 
 TBD
 
-- hugo benchmark
 - hugo convert
 - hugo env
 - hugo gen

@@ -79,3 +79,52 @@ you don't own. Struct embedding bypasses this.
 Option 2 is simpler but requires every command handler to have a local
 literal function that wraps the state and calls the real handler (or is
 the entire command handler).
+
+## Pattern for Hugo commands
+
+There is a top-level object `Hugo` that holds the common state for all
+Hugo commands (logging, config, sites).
+
+Each command has its own command object and command builder. The pattern
+looks like this.
+
+```go
+
+// Build Hugo root command.
+func buildHugoCommand(hugo *core.Hugo) *hugoCmd {
+    h := &hugoCmd{Hugo: hugo}
+
+    h.cmd = &cobra.Command{
+        Use:   "hugo",
+        Short: "hugo builds your site",
+        Long: `hugo is the main command, used to build your Hugo site.
+
+Hugo is a Fast and Flexible Static Site Generator
+built with love by spf13 and friends in Go.
+
+Complete documentation is available at http://gohugo.io/.`,
+        RunE: h.hugo,
+    }
+
+    // Add flags for the "hugo" command
+    h.cmd.Flags().BoolVar(&h.renderToMemory, "renderToMemory", false, "render to memory (useful for benchmark testing)")
+    h.cmd.Flags().BoolVarP(&h.watch, "watch", "w", false, "watch filesystem for changes and recreate as needed")
+
+    // Add flags shared by builders: "hugo", "hugo server", "hugo benchmark"
+    addHugoBuilderFlags(h.cmd)
+
+    return h
+}
+
+type hugoCmd struct {
+    *core.Hugo
+    cmd *cobra.Command
+
+    renderToMemory bool
+    watch bool
+}
+
+func (h *hugoCmd) hugo(cmd *cobra.Command, args []string) error {
+    return nil
+}
+```

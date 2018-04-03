@@ -16,12 +16,16 @@ package commands
 import (
 	"syscall"
 
+	"github.com/neurocline/drouet/pkg/core"
+
 	"github.com/spf13/cobra"
 	jww "github.com/spf13/jwalterweatherman"
 )
 
-func buildHugoCheckUlimitCmd(h *hugoCmd) *cobra.Command {
-	cmd := &cobra.Command{
+func buildHugoCheckUlimitCmd(hugo *core.Hugo) *hugoCheckUlimitCmd {
+	h := &hugoBenchmarkCmd{Hugo: hugo}
+
+	h.cmd = &cobra.Command{
 		Use:   "ulimit",
 		Short: "Check system ulimit settings",
 		Long: `Hugo will inspect the current ulimit settings on the system.
@@ -29,12 +33,17 @@ This is primarily to ensure that Hugo can watch enough files on some OSs`,
 		RunE: h.checkUlimit,
 	}
 
-	return cmd
+	return h
 }
 
 // ----------------------------------------------------------------------------------------------
 
-func (h *hugoCmd) checkUlimit(cmd *cobra.Command, args []string) error {
+type hugoCheckUlimitCmd struct {
+	*core.Hugo
+	cmd *cobra.Command
+}
+
+func (h *hugoCheckUlimitCmd) checkUlimit(cmd *cobra.Command, args []string) error {
 	var rLimit syscall.Rlimit
 	err := syscall.Getrlimit(syscall.RLIMIT_NOFILE, &rLimit)
 	if err != nil {

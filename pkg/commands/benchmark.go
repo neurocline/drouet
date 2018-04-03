@@ -27,11 +27,11 @@ import (
 	jww "github.com/spf13/jwalterweatherman"
 )
 
-
-
 // Build "hugo benchmark" command.
-func buildHugoBenchmarkCmd(h *hugoCmd) *cobra.Command {
-	cmd := &cobra.Command{
+func buildHugoBenchmarkCmd(hugo *core.Hugo) *hugoBenchmarkCmd {
+	h := &hugoBenchmarkCmd{Hugo: hugo}
+
+	h.cmd = &cobra.Command{
 		Use:   "benchmark",
 		Short: "Benchmark Hugo by building a site a number of times.",
 		Long: `Hugo can build a site many times over and analyze the running process
@@ -40,20 +40,30 @@ creating a benchmark.`,
 	}
 
 	// Add flags for the "hugo benchmark" command
-	cmd.Flags().IntP("count", "n", 13, "number of times to build the site")
-	cmd.Flags().String("cpuprofile", "", "path/filename for the CPU profile file")
-	cmd.Flags().String("memprofile", "", "path/filename for the memory profile file")
-	cmd.Flags().Bool("renderToMemory", false, "render to memory (useful for benchmark testing)")
+	h.cmd.Flags().IntVarP(&h.benchmarkTimes, "count", "n", 13, "number of times to build the site")
+	h.cmd.Flags().StringVar(&h.cpuProfileFile, "cpuprofile", "", "path/filename for the CPU profile file")
+	h.cmd.Flags().StringVar(&h.memProfileFile, "memprofile", "", "path/filename for the memory profile file")
+	h.cmd.Flags().BoolVar(&h.renderToMemory, "renderToMemory", false, "render to memory (useful for benchmark testing)")
 
 	// Add flags shared by builders: "hugo", "hugo server", "hugo benchmark"
-	initHugoBuilderFlags(cmd)
+	addHugoBuilderFlags(h.cmd)
 
-	return cmd
+	return h
 }
 
 // ----------------------------------------------------------------------------------------------
 
-func (h *hugoCmd) benchmark(cmd *cobra.Command, args []string) error {
+type hugoBenchmarkCmd struct {
+	*core.Hugo
+	cmd *cobra.Command
+
+	benchmarkTimes int
+	cpuProfileFile string
+	memProfileFile string
+	renderToMemory bool
+}
+
+func (h *hugoBenchmarkCmd) benchmark(cmd *cobra.Command, args []string) error {
 
 	// Load config
 	var err error
@@ -65,9 +75,8 @@ func (h *hugoCmd) benchmark(cmd *cobra.Command, args []string) error {
 
 	// If --memprofile=<FILE>, then create log file for memory profiling
 	var memProf *os.File
-	memProfileFile := h.Config.GetString("memprofile")
-	if memProfileFile != "" {
-		memProf, err = os.Create(memProfileFile)
+	if h.memProfileFile != "" {
+		memProf, err = os.Create(h.memProfileFile)
 		if err != nil {
 			return err
 		}
@@ -76,9 +85,8 @@ func (h *hugoCmd) benchmark(cmd *cobra.Command, args []string) error {
 
 	// If --cpuprofile=<FILE>, then create log file for cpu profiling
 	var cpuProf *os.File
-	cpuProfileFile := h.Config.GetString("cpuprofile")
-	if cpuProfileFile != "" {
-		cpuProf, err = os.Create(cpuProfileFile)
+	if h.cpuProfileFile != "" {
+		cpuProf, err = os.Create(h.cpuProfileFile)
 		if err != nil {
 			return err
 		}
@@ -97,12 +105,12 @@ func (h *hugoCmd) benchmark(cmd *cobra.Command, args []string) error {
 	}
 
 	// Build site N times, measuring total elapsed time
-	benchmarkTimes := h.Config.GetInt("count")
 	t := time.Now()
-	for i := 0; i < benchmarkTimes; i++ {
-		//if err = c.resetAndBuildSites(); err != nil {
-		//	return err
-		//}
+	builder := &hugoCmd{Hugo: h.Hugo, cmd: h.cmd, renderToMemory: h.renderToMemory}
+	for i := 0; i < h.benchmarkTimes; i++ {
+		if err = builder.resetAndBuildSites(); err != nil {
+			return err
+		}
 	}
 	totalTime := time.Since(t)
 
@@ -120,9 +128,9 @@ func (h *hugoCmd) benchmark(cmd *cobra.Command, args []string) error {
 	totalMallocs := memStats.Mallocs - mallocs
 
 	jww.FEEDBACK.Println()
-	jww.FEEDBACK.Printf("Average time per operation: %vms\n", int(1000*totalTime.Seconds()/float64(benchmarkTimes)))
-	jww.FEEDBACK.Printf("Average memory allocated per operation: %vkB\n", totalMemAllocated/uint64(benchmarkTimes)/1024)
-	jww.FEEDBACK.Printf("Average allocations per operation: %v\n", totalMallocs/uint64(benchmarkTimes))
+	jww.FEEDBACK.Printf("Average time per operation: %vms\n", int(1000*totalTime.Seconds()/float64(h.benchmarkTimes)))
+	jww.FEEDBACK.Printf("Average memory allocated per operation: %vkB\n", totalMemAllocated/uint64(h.benchmarkTimes)/1024)
+	jww.FEEDBACK.Printf("Average allocations per operation: %v\n", totalMallocs/uint64(h.benchmarkTimes))
 
 	return nil
 }

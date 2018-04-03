@@ -16,6 +16,7 @@ package commands
 import (
 	"errors"
 
+	"github.com/neurocline/drouet/pkg/core"
 	"github.com/neurocline/drouet/pkg/releaser"
 
 	"github.com/spf13/cobra"
@@ -24,40 +25,38 @@ import (
 // Build "hugo release" command.
 // Note: This is a command only meant for internal use and must be run
 // via "go run -tags release main.go release" on the actual code base that is in the release.
-func buildHugoReleaseCmd(h *hugoCmd) *releaseCommandeer {
-	r := &releaseCommandeer{}
+func buildHugoReleaseCmd(hugo *core.Hugo) *hugoReleaseCmd {
+	h := &hugoReleaseCmd{Hugo: hugo}
 
-	r.cmd = &cobra.Command{
+	h.cmd = &cobra.Command{
 		Use:    "release",
 		Short:  "Release a new version of Hugo.",
 		Hidden: true,
-		RunE:   func(cmd *cobra.Command, args []string) error {
-			return r.release(h)
-		},
+		RunE:   h.release,
 	}
 
-	r.cmd.PersistentFlags().StringVarP(&r.version, "rel", "r", "", "new release version, i.e. 0.25.1")
-	r.cmd.PersistentFlags().BoolVarP(&r.skipPublish, "skip-publish", "", false, "skip all publishing pipes of the release")
-	r.cmd.PersistentFlags().BoolVarP(&r.try, "try", "", false, "simulate a release, i.e. no changes")
+	h.cmd.PersistentFlags().StringVarP(&h.version, "rel", "r", "", "new release version, i.e. 0.25.1")
+	h.cmd.PersistentFlags().BoolVarP(&h.skipPublish, "skip-publish", "", false, "skip all publishing pipes of the release")
+	h.cmd.PersistentFlags().BoolVarP(&h.try, "try", "", false, "simulate a release, i.e. no changes")
 
-	return r
+	return h
 }
 
 // ----------------------------------------------------------------------------------------------
 
-type releaseCommandeer struct {
+type hugoReleaseCmd struct {
+	*core.Hugo
 	cmd *cobra.Command
 
 	version string
-
 	skipPublish bool
 	try         bool
 }
 
-func (r *releaseCommandeer) release(h *hugoCmd) error {
-	if r.version == "" {
+func (h *hugoReleaseCmd) release(cmd *cobra.Command, args []string) error {
+	if h.version == "" {
 		return errors.New("must set the --rel flag to the relevant version number")
 	}
 
-	return releaser.New(r.version, r.skipPublish, r.try).Run()
+	return releaser.New(h.version, h.skipPublish, h.try).Run()
 }

@@ -19,13 +19,17 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/neurocline/drouet/pkg/core"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
 // Build "hugo server" command.
-func buildHugoServerCmd(h *hugoCmd) *cobra.Command {
-	cmd := &cobra.Command{
+func buildHugoServerCmd(hugo *core.Hugo) *hugoServerCmd {
+	h := &hugoServerCmd{Hugo: hugo}
+
+	h.cmd = &cobra.Command{
 		Use:     "server",
 		Aliases: []string{"serve"},
 		Short:   "A high performance webserver",
@@ -44,29 +48,34 @@ of a second, you will be able to save and see your changes nearly instantly.`,
 		RunE: h.server,
 	}
 
-	// Add flags shared by "hugo server"
-	initHugoBuilderFlags(cmd)
+	// Add flags shared by builders: "hugo", "hugo server", "hugo benchmark"
+	addHugoBuilderFlags(h.cmd)
 
 	// Add flags for "hugo server"
-	cmd.Flags().Bool("appendPort", true, "append port to baseURL")
-	cmd.Flags().String("bind", "127.0.0.1", "interface to which the server will bind")
-	cmd.Flags().Bool("disableFastRender", false, "enables full re-renders on changes")
-	cmd.Flags().Bool("disableLiveReload", false, "watch without enabling live browser reload on rebuild")
-	cmd.Flags().Int("liveReloadPort", -1, "port for live reloading (i.e. 443 in HTTPS proxy situations)")
-	cmd.Flags().String("memstats", "", "log memory usage to this file")
-	cmd.Flags().String("meminterval", "100ms", "interval to poll memory usage (requires --memstats), valid time units are \"ns\", \"us\" (or \"µs\"), \"ms\", \"s\", \"m\", \"h\".")
-	cmd.Flags().Bool("noHTTPCache", false, "prevent HTTP caching")
-	cmd.Flags().Bool("navigateToChanged", false, "navigate to changed content file on live browser reload")
-	cmd.Flags().IntP("port", "p", 1313, "port on which the server will listen")
-	cmd.Flags().Bool("renderToDisk", false, "render to Destination path (default is render to memory & serve from there)")
-	cmd.Flags().BoolP("watch", "w", true, "watch filesystem for changes and recreate as needed")
+	h.cmd.Flags().Bool("appendPort", true, "append port to baseURL")
+	h.cmd.Flags().String("bind", "127.0.0.1", "interface to which the server will bind")
+	h.cmd.Flags().Bool("disableFastRender", false, "enables full re-renders on changes")
+	h.cmd.Flags().Bool("disableLiveReload", false, "watch without enabling live browser reload on rebuild")
+	h.cmd.Flags().Int("liveReloadPort", -1, "port for live reloading (i.e. 443 in HTTPS proxy situations)")
+	h.cmd.Flags().String("memstats", "", "log memory usage to this file")
+	h.cmd.Flags().String("meminterval", "100ms", "interval to poll memory usage (requires --memstats), valid time units are \"ns\", \"us\" (or \"µs\"), \"ms\", \"s\", \"m\", \"h\".")
+	h.cmd.Flags().Bool("noHTTPCache", false, "prevent HTTP caching")
+	h.cmd.Flags().Bool("navigateToChanged", false, "navigate to changed content file on live browser reload")
+	h.cmd.Flags().IntP("port", "p", 1313, "port on which the server will listen")
+	h.cmd.Flags().Bool("renderToDisk", false, "render to Destination path (default is render to memory & serve from there)")
+	h.cmd.Flags().BoolP("watch", "w", true, "watch filesystem for changes and recreate as needed")
 
-	return cmd
+	return h
 }
 
 // ----------------------------------------------------------------------------------------------
 
-func (h *hugoCmd) server(cmd *cobra.Command, args []string) error {
+type hugoServerCmd struct {
+	*core.Hugo
+	cmd *cobra.Command
+}
+
+func (h *hugoServerCmd) server(cmd *cobra.Command, args []string) error {
 	fmt.Println("hugo server - hugo server code goes here")
 	return nil
 }

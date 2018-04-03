@@ -25,21 +25,32 @@ import (
 )
 
 // Build "hugo version" command.
-func buildHugoVersionCmd(h *hugoCmd) *cobra.Command {
-	cmd := &cobra.Command{
+func buildHugoVersionCmd(hugo *core.Hugo) *hugoVersionCmd {
+	h := &hugoVersionCmd{Hugo: hugo}
+
+	h.cmd = &cobra.Command{
 		Use:   "version",
 		Short: "Print the version number of Hugo",
 		Long:  `All software has versions. This is Hugo's.`,
 		RunE:  h.version,
 	}
 
-	return cmd
+	return h
 }
 
 // ----------------------------------------------------------------------------------------------
 
-func (h *hugoCmd) version(cmd *cobra.Command, args []string) error {
+type hugoVersionCmd struct {
+	*core.Hugo
+	cmd *cobra.Command
+}
 
+func (h *hugoVersionCmd) version(cmd *cobra.Command, args []string) error {
+	showVersion(h.Hugo.Logger)
+	return nil
+}
+
+func showVersion(Logger *jww.Notepad) {
 	// Create Hugo version string with optional commit hash
 	vers := fmt.Sprintf("%s", core.CurrentHugoVersion())
 	if core.CommitHash != "" {
@@ -47,7 +58,5 @@ func (h *hugoCmd) version(cmd *cobra.Command, args []string) error {
 	}
 	os_arch := fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH)
 
-	jww.FEEDBACK.Printf("Hugo Static Site Generator v%s %s BuildDate: %s\n", vers, os_arch, core.BuildDate)
-
-	return nil
+	Logger.FEEDBACK.Printf("Hugo Static Site Generator v%s %s BuildDate: %s\n", vers, os_arch, core.BuildDate)
 }

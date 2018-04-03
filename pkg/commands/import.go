@@ -16,12 +16,16 @@ package commands
 import (
 	"fmt"
 
+	"github.com/neurocline/drouet/pkg/core"
+
 	"github.com/spf13/cobra"
 )
 
 // Build "hugo import" command.
-func buildHugoImportCmd(h *hugoCmd) *cobra.Command {
-	cmd := &cobra.Command{
+func buildHugoImportCmd(hugo *core.Hugo) *hugoImportCmd {
+	h := &hugoImportCmd{Hugo: hugo}
+
+	h.cmd = &cobra.Command{
 		Use:   "import",
 		Short: "Import your site from others.",
 		Long: `Import your site from other web site generators like Jekyll.
@@ -30,14 +34,16 @@ Import requires a subcommand, e.g. ` + "`hugo import jekyll <jekyll_root_path> <
 		RunE: nil,
 	}
 
-	cmd.AddCommand(buildHugoImportJekyllCmd(h))
+	h.cmd.AddCommand(buildHugoImportJekyllCmd(hugo).cmd)
 
-	return cmd
+	return h
 }
 
 // Build "hugo import" command.
-func buildHugoImportJekyllCmd(h *hugoCmd) *cobra.Command {
-	cmd := &cobra.Command{
+func buildHugoImportJekyllCmd(hugo *core.Hugo) *hugoImportJekyllCmd {
+	h := &hugoImportJekyllCmd{Hugo: hugo}
+
+	h.cmd = &cobra.Command{
 		Use:   "jekyll",
 		Short: "hugo import from Jekyll",
 		Long: `hugo import from Jekyll.
@@ -46,14 +52,24 @@ Import from Jekyll requires two paths, e.g. ` + "`hugo import jekyll <jekyll_roo
 		RunE: h.importJekyll,
 	}
 
-	cmd.Flags().Bool("force", false, "allow import into non-empty target directory")
+	h.cmd.Flags().Bool("force", false, "allow import into non-empty target directory")
 
-	return cmd
+	return h
 }
 
 // ----------------------------------------------------------------------------------------------
 
-func (h *hugoCmd) importJekyll(cmd *cobra.Command, args []string) error {
+type hugoImportCmd struct {
+	*core.Hugo
+	cmd *cobra.Command
+}
+
+type hugoImportJekyllCmd struct {
+	*core.Hugo
+	cmd *cobra.Command
+}
+
+func (h *hugoImportJekyllCmd) importJekyll(cmd *cobra.Command, args []string) error {
 	fmt.Println("hugo import jekyll - hugo import jekyll code goes here")
 	return nil
 }

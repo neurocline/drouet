@@ -14,14 +14,17 @@
 package commands
 
 import (
-	"fmt"
+	"github.com/neurocline/drouet/pkg/core"
+	"github.com/neurocline/drouet/pkg/parser"
 
 	"github.com/spf13/cobra"
 )
 
 // Build "hugo convert" command.
-func buildHugoConvertCmd(h *hugoCmd) *cobra.Command {
-	cmd := &cobra.Command{
+func buildHugoConvertCmd(hugo *core.Hugo) *hugoConvertCmd {
+	h := &hugoConvertCmd{Hugo: hugo}
+
+	h.cmd = &cobra.Command{
 		Use:   "convert",
 		Short: "Convert your content to different formats",
 		Long: `Convert your content (e.g. front matter) to different formats.
@@ -30,23 +33,24 @@ See convert's subcommands toJSON, toTOML and toYAML for more information.`,
 		RunE: nil, // will print usage
 	}
 
-	cmd.AddCommand(buildHugoConvertToJsonCmd(h))
-	cmd.AddCommand(buildHugoConvertToTomlCmd(h))
-	cmd.AddCommand(buildHugoConvertToYamlCmd(h))
+	h.cmd.AddCommand(buildHugoConvertToJsonCmd(hugo).cmd)
+	h.cmd.AddCommand(buildHugoConvertToTomlCmd(hugo).cmd)
+	h.cmd.AddCommand(buildHugoConvertToYamlCmd(hugo).cmd)
 
 	// Flags shared between all convert commands
-	cmd.PersistentFlags().StringP("output", "o", "", "filesystem path to write files to")
-	cmd.PersistentFlags().StringP("source", "s", "", "filesystem path to read files relative from")
-	cmd.PersistentFlags().Bool("unsafe", false, "enable less safe operations, please backup first")
+	h.cmd.PersistentFlags().StringVarP(&h.outputdir, "output", "o", "", "filesystem path to write files to")
+	h.cmd.PersistentFlags().StringVarP(&h.source, "source", "s", "", "filesystem path to read files relative from")
+	h.cmd.PersistentFlags().BoolVar(&h.unsafe, "unsafe", false, "enable less safe operations, please backup first")
 
-	cmd.PersistentFlags().SetAnnotation("source", cobra.BashCompSubdirsInDir, []string{})
+	h.cmd.PersistentFlags().SetAnnotation("source", cobra.BashCompSubdirsInDir, []string{})
 
-	return cmd
+	return h
 }
 
-func buildHugoConvertToJsonCmd(h *hugoCmd) *cobra.Command {
+func buildHugoConvertToJsonCmd(hugo *core.Hugo) *hugoConvertCmd {
+	h := &hugoConvertCmd{Hugo: hugo}
 
-	cmd := &cobra.Command{
+	h.cmd = &cobra.Command{
 		Use:   "toJSON",
 		Short: "Convert front matter to JSON",
 		Long: `toJSON converts all front matter in the content directory
@@ -54,12 +58,13 @@ to use JSON for the front matter.`,
 		RunE: h.convertToJson,
 	}
 
-	return cmd
+	return h
 }
 
-func buildHugoConvertToTomlCmd(h *hugoCmd) *cobra.Command {
+func buildHugoConvertToTomlCmd(hugo *core.Hugo) *hugoConvertCmd {
+	h := &hugoConvertCmd{Hugo: hugo}
 
-	cmd := &cobra.Command{
+	h.cmd = &cobra.Command{
 		Use:   "toTOML",
 		Short: "Convert front matter to TOML",
 		Long: `toTOML converts all front matter in the content directory
@@ -67,12 +72,13 @@ to use TOML for the front matter.`,
 		RunE: h.convertToToml,
 	}
 
-	return cmd
+	return h
 }
 
-func buildHugoConvertToYamlCmd(h *hugoCmd) *cobra.Command {
+func buildHugoConvertToYamlCmd(hugo *core.Hugo) *hugoConvertCmd {
+	h := &hugoConvertCmd{Hugo: hugo}
 
-	cmd := &cobra.Command{
+	h.cmd = &cobra.Command{
 		Use:   "toYAML",
 		Short: "Convert front matter to YAML",
 		Long: `toYAML converts all front matter in the content directory
@@ -80,30 +86,34 @@ to use YAML for the front matter.`,
 		RunE: h.convertToYaml,
 	}
 
-	return cmd
+	return h
 }
 
 // ----------------------------------------------------------------------------------------------
 
-func (h *hugoCmd) convert(cmd *cobra.Command, args []string) error {
-	fmt.Println("hugo convert - hugo convert goes here")
-	return nil
+// All of the "hugo convert" sub-commands share the same set of flags and so
+// share the same command structure
+type hugoConvertCmd struct {
+	*core.Hugo
+	cmd *cobra.Command
+
+	outputdir string
+	source string
+	unsafe bool
 }
 
-func (h *hugoCmd) convertToJson(cmd *cobra.Command, args []string) error {
-	// return convertContents(rune([]byte(parser.JSONLead)[0]))
-	fmt.Println("hugo convert json - hugo convert json goes here")
-	return nil
+func (h *hugoConvertCmd) convertToJson(cmd *cobra.Command, args []string) error {
+	return h.convertContents(rune([]byte(parser.JSONLead)[0]))
 }
 
-func (h *hugoCmd) convertToToml(cmd *cobra.Command, args []string) error {
-	// return convertContents(rune([]byte(parser.TOMLLead)[0]))
-	fmt.Println("hugo convert json - hugo convert json goes here")
-	return nil
+func (h *hugoConvertCmd) convertToToml(cmd *cobra.Command, args []string) error {
+	return h.convertContents(rune([]byte(parser.TOMLLead)[0]))
 }
 
-func (h *hugoCmd) convertToYaml(cmd *cobra.Command, args []string) error {
-	// return convertContents(rune([]byte(parser.YAMLLead)[0]))
-	fmt.Println("hugo convert json - hugo convert json goes here")
+func (h *hugoConvertCmd) convertToYaml(cmd *cobra.Command, args []string) error {
+	return h.convertContents(rune([]byte(parser.YAMLLead)[0]))
+}
+
+func (h *hugoConvertCmd) convertContents(mark rune) error {
 	return nil
 }

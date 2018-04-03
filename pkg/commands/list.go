@@ -16,12 +16,16 @@ package commands
 import (
 	"fmt"
 
+	"github.com/neurocline/drouet/pkg/core"
+
 	"github.com/spf13/cobra"
 )
 
 // Build "hugo list" command.
-func buildHugoListCmd(h *hugoCmd) *cobra.Command {
-	cmd := &cobra.Command{
+func buildHugoListCmd(hugo *core.Hugo) *hugoListCmd {
+	h := &hugoListCmd{Hugo: hugo}
+
+	h.cmd = &cobra.Command{
 		Use:   "list",
 		Short: "Listing out various types of content",
 		Long: `Listing out various types of content.
@@ -31,34 +35,38 @@ List requires a subcommand, e.g. ` + "`hugo list drafts`.",
 	}
 
 	// Add hugo list subcommands
-	cmd.AddCommand(buildHugoListDraftsCmd(h))
-	cmd.AddCommand(buildHugoListExpiredCmd(h))
-	cmd.AddCommand(buildHugoListFutureCmd(h))
+	h.cmd.AddCommand(buildHugoListDraftsCmd(hugo).cmd)
+	h.cmd.AddCommand(buildHugoListExpiredCmd(hugo).cmd)
+	h.cmd.AddCommand(buildHugoListFutureCmd(hugo).cmd)
 
 	// Add flags used by all list subcommands
-	cmd.PersistentFlags().StringP("source", "s", "", "filesystem path to read files relative from")
+	h.cmd.PersistentFlags().StringP("source", "s", "", "filesystem path to read files relative from")
 
 	// Set bash completion
-	cmd.PersistentFlags().SetAnnotation("source", cobra.BashCompSubdirsInDir, []string{})
+	h.cmd.PersistentFlags().SetAnnotation("source", cobra.BashCompSubdirsInDir, []string{})
 
-	return cmd
+	return h
 }
 
 // Build "hugo list drafts" command.
-func buildHugoListDraftsCmd(h *hugoCmd) *cobra.Command {
-	cmd := &cobra.Command{
+func buildHugoListDraftsCmd(hugo *core.Hugo) *hugoListDraftsCmd {
+	h := &hugoListDraftsCmd{Hugo: hugo}
+
+	h.cmd = &cobra.Command{
 		Use:   "drafts",
 		Short: "List all drafts",
 		Long:  `List all of the drafts in your content directory.`,
 		RunE:  h.listDrafts,
 	}
 
-	return cmd
+	return h
 }
 
 // Build "hugo list expired" command.
-func buildHugoListExpiredCmd(h *hugoCmd) *cobra.Command {
-	cmd := &cobra.Command{
+func buildHugoListExpiredCmd(hugo *core.Hugo) *hugoListExpiredCmd {
+	h := &hugoListExpiredCmd{Hugo: hugo}
+
+	h.cmd = &cobra.Command{
 		Use:   "expired",
 		Short: "List all posts already expired",
 		Long: `List all of the posts in your content directory which has already
@@ -66,12 +74,14 @@ expired.`,
 		RunE: h.listExpired,
 	}
 
-	return cmd
+	return h
 }
 
 // Build "hugo list future" command.
-func buildHugoListFutureCmd(h *hugoCmd) *cobra.Command {
-	cmd := &cobra.Command{
+func buildHugoListFutureCmd(hugo *core.Hugo) *hugoListFutureCmd {
+	h := &hugoListFutureCmd{Hugo: hugo}
+
+	h.cmd = &cobra.Command{
 		Use:   "future",
 		Short: "List all posts dated in the future",
 		Long: `List all of the posts in your content directory which will be
@@ -79,22 +89,42 @@ posted in the future.`,
 		RunE: h.listFuture,
 	}
 
-	return cmd
+	return h
 }
 
 // ----------------------------------------------------------------------------------------------
 
-func (h *hugoCmd) listDrafts(cmd *cobra.Command, args []string) error {
+type hugoListCmd struct {
+	*core.Hugo
+	cmd *cobra.Command
+}
+
+type hugoListDraftsCmd struct {
+	*core.Hugo
+	cmd *cobra.Command
+}
+
+func (h *hugoListDraftsCmd) listDrafts(cmd *cobra.Command, args []string) error {
 	fmt.Println("hugo list drafts - hugo list drafts code goes here")
 	return nil
 }
 
-func (h *hugoCmd) listExpired(cmd *cobra.Command, args []string) error {
+type hugoListExpiredCmd struct {
+	*core.Hugo
+	cmd *cobra.Command
+}
+
+func (h *hugoListExpiredCmd) listExpired(cmd *cobra.Command, args []string) error {
 	fmt.Println("hugo list expired - hugo list expired code goes here")
 	return nil
 }
 
-func (h *hugoCmd) listFuture(cmd *cobra.Command, args []string) error {
+type hugoListFutureCmd struct {
+	*core.Hugo
+	cmd *cobra.Command
+}
+
+func (h *hugoListFutureCmd) listFuture(cmd *cobra.Command, args []string) error {
 	fmt.Println("hugo list future - hugo list future code goes here")
 	return nil
 }

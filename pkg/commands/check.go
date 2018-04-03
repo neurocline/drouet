@@ -14,20 +14,30 @@
 package commands
 
 import (
+	"github.com/neurocline/drouet/pkg/core"
 	"github.com/spf13/cobra"
 )
 
 // Build "hugo check" command.
-func buildHugoCheckCmd(h *hugoCmd) *cobra.Command {
-	cmd := &cobra.Command{
+func buildHugoCheckCmd(hugo *core.Hugo) *hugoCheckCmd {
+	h := &hugoCheckCmd{Hugo: hugo}
+
+	h.cmd = &cobra.Command{
 		Use:   "check",
 		Short: "Contains some verification checks",
 	}
 
 	// Add the check ulimit subcommand if it exists (only for Darwin)
-	if cmdUlimit := buildHugoCheckUlimitCmd(h); cmdUlimit != nil {
-		cmd.AddCommand(cmdUlimit)
+	if cmdUlimit := buildHugoCheckUlimitCmd(hugo); cmdUlimit != nil {
+		h.cmd.AddCommand(cmdUlimit.cmd)
 	}
 
-	return cmd
+	return h
+}
+
+// ----------------------------------------------------------------------------------------------
+
+type hugoCheckCmd struct {
+	*core.Hugo
+	cmd *cobra.Command
 }

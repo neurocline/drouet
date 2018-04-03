@@ -16,12 +16,16 @@ package commands
 import (
 	"fmt"
 
+	"github.com/neurocline/drouet/pkg/core"
+
 	"github.com/spf13/cobra"
 )
 
 // Build "hugo new" command.
-func buildHugoNewCmd(h *hugoCmd) *cobra.Command {
-	cmd := &cobra.Command{
+func buildHugoNewCmd(hugo *core.Hugo) *hugoNewCmd {
+	h := &hugoNewCmd{Hugo: hugo}
+
+	h.cmd = &cobra.Command{
 		Use:   "new [path]",
 		Short: "Create new content for your site",
 		Long: `Create a new content file and automatically set the date and title.
@@ -34,25 +38,27 @@ If archetypes are provided in your theme or site, they will be used.`,
 	}
 
 	// Add flags used by all subcommands of new
-	cmd.PersistentFlags().StringP("source", "s", "", "filesystem path to read files relative from")
+	h.cmd.PersistentFlags().StringP("source", "s", "", "filesystem path to read files relative from")
 
 	// Add flags used by just new
-	cmd.Flags().StringP("kind", "k", "", "content type to create")
-	cmd.Flags().String("editor", "", "edit new content with this editor, if provided")
+	h.cmd.Flags().StringP("kind", "k", "", "content type to create")
+	h.cmd.Flags().String("editor", "", "edit new content with this editor, if provided")
 
 	// Set BASH expansion
-	cmd.PersistentFlags().SetAnnotation("source", cobra.BashCompSubdirsInDir, []string{})
+	h.cmd.PersistentFlags().SetAnnotation("source", cobra.BashCompSubdirsInDir, []string{})
 
 	// Add subcommands
-	cmd.AddCommand(buildHugoNewSiteCmd(h))
-	cmd.AddCommand(buildHugoNewThemeCmd(h))
+	h.cmd.AddCommand(buildHugoNewSiteCmd(hugo).cmd)
+	h.cmd.AddCommand(buildHugoNewThemeCmd(hugo).cmd)
 
-	return cmd
+	return h
 }
 
 // Build "hugo new site" command.
-func buildHugoNewSiteCmd(h *hugoCmd) *cobra.Command {
-	cmd := &cobra.Command{
+func buildHugoNewSiteCmd(hugo *core.Hugo) *hugoNewSiteCmd {
+	h := &hugoNewSiteCmd{Hugo: hugo}
+
+	h.cmd = &cobra.Command{
 		Use:   "site [path]",
 		Short: "Create a new site (skeleton)",
 		Long: `Create a new site in the provided directory.
@@ -61,12 +67,14 @@ Use ` + "`hugo new [contentPath]`" + ` to create new content.`,
 		RunE: h.newSite,
 	}
 
-	return cmd
+	return h
 }
 
 // Build "hugo new theme" command.
-func buildHugoNewThemeCmd(h *hugoCmd) *cobra.Command {
-	cmd := &cobra.Command{
+func buildHugoNewThemeCmd(hugo *core.Hugo) *hugoNewThemeCmd {
+	h := &hugoNewThemeCmd{Hugo: hugo}
+
+	h.cmd = &cobra.Command{
 		Use:   "theme [name]",
 		Short: "Create a new theme",
 		Long: `Create a new theme (skeleton) called [name] in the current directory.
@@ -76,22 +84,37 @@ as you see fit.`,
 		RunE: h.newTheme,
 	}
 
-	return cmd
+	return h
 }
 
 // ----------------------------------------------------------------------------------------------
 
-func (h *hugoCmd) newContent(cmd *cobra.Command, args []string) error {
+type hugoNewCmd struct {
+	*core.Hugo
+	cmd *cobra.Command
+}
+
+func (h *hugoNewCmd) newContent(cmd *cobra.Command, args []string) error {
 	fmt.Println("hugo new - hugo new code goes here")
 	return nil
 }
 
-func (h *hugoCmd) newSite(cmd *cobra.Command, args []string) error {
+type hugoNewSiteCmd struct {
+	*core.Hugo
+	cmd *cobra.Command
+}
+
+func (h *hugoNewSiteCmd) newSite(cmd *cobra.Command, args []string) error {
 	fmt.Println("hugo new site - hugo new site code goes here")
 	return nil
 }
 
-func (h *hugoCmd) newTheme(cmd *cobra.Command, args []string) error {
+type hugoNewThemeCmd struct {
+	*core.Hugo
+	cmd *cobra.Command
+}
+
+func (h *hugoNewThemeCmd) newTheme(cmd *cobra.Command, args []string) error {
 	fmt.Println("hugo new theme - hugo new theme code goes here")
 	return nil
 }
