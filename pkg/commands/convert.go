@@ -38,7 +38,7 @@ See convert's subcommands toJSON, toTOML and toYAML for more information.`,
 	h.cmd.AddCommand(buildHugoConvertToYamlCmd(hugo).cmd)
 
 	// Flags shared between all convert commands
-	h.cmd.PersistentFlags().StringVarP(&h.outputdir, "output", "o", "", "filesystem path to write files to")
+	h.cmd.PersistentFlags().StringVarP(&h.outputDir, "output", "o", "", "filesystem path to write files to")
 	h.cmd.PersistentFlags().StringVarP(&h.source, "source", "s", "", "filesystem path to read files relative from")
 	h.cmd.PersistentFlags().BoolVar(&h.unsafe, "unsafe", false, "enable less safe operations, please backup first")
 
@@ -97,7 +97,7 @@ type hugoConvertCmd struct {
 	*core.Hugo
 	cmd *cobra.Command
 
-	outputdir string
+	outputDir string
 	source string
 	unsafe bool
 }
@@ -115,5 +115,30 @@ func (h *hugoConvertCmd) convertToYaml(cmd *cobra.Command, args []string) error 
 }
 
 func (h *hugoConvertCmd) convertContents(mark rune) error {
+	if h.outputDir == "" && !h.unsafe {
+		return core.NewUserError("Unsafe operation not allowed, use --unsafe or set a different output path")
+	}
+
+	if err := h.Hugo.InitializeConfig(h.cmd); err != nil {
+		return err
+	}
+
+//	h, err := hugolib.NewHugoSites(*c.DepsCfg)
+//	if err != nil {
+//		return err
+//	}
+//
+//	if err := h.Build(hugolib.BuildCfg{SkipRender: true}); err != nil {
+//		return err
+//	}
+//
+//	site := h.Sites[0]
+//
+//	site.Log.FEEDBACK.Println("processing", len(site.AllPages), "content files")
+//	for _, p := range site.AllPages {
+//		if err := convertAndSavePage(p, site, mark); err != nil {
+//			return err
+//		}
+//	}
 	return nil
 }

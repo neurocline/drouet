@@ -73,9 +73,15 @@ of a second, you will be able to save and see your changes nearly instantly.`,
 type hugoServerCmd struct {
 	*core.Hugo
 	cmd *cobra.Command
+
+	//visitedURLs *types.EvictingStringQueue
+	running bool
 }
 
 func (h *hugoServerCmd) server(cmd *cobra.Command, args []string) error {
+	//h.visitedURLs = types.NewEvictingStringQueue(10)
+	h.running = true // servers are always in running mode
+
 	fmt.Println("hugo server - hugo server code goes here")
 	return nil
 }

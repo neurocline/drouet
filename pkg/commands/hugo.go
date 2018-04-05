@@ -17,6 +17,8 @@
 package commands
 
 import (
+	"fmt"
+
 	"github.com/neurocline/drouet/pkg/core"
 
 	"github.com/spf13/cobra"
@@ -173,7 +175,7 @@ Complete documentation is available at http://gohugo.io/.`,
 
 	// Add flags for the "hugo" command
 	h.cmd.Flags().BoolVar(&h.renderToMemory, "renderToMemory", false, "render to memory (useful for benchmark testing)")
-	h.cmd.Flags().BoolVarP(&h.watch, "watch", "w", false, "watch filesystem for changes and recreate as needed")
+	h.cmd.Flags().BoolVarP(&h.buildWatch, "watch", "w", false, "watch filesystem for changes and recreate as needed")
 
 	// Add flags shared by builders: "hugo", "hugo server", "hugo benchmark"
 	addHugoBuilderFlags(h.cmd)
@@ -188,10 +190,17 @@ type hugoCmd struct {
 	cmd *cobra.Command
 
 	renderToMemory bool
-	watch bool
+	buildWatch bool
+
+	//visitedURLs *types.EvictingStringQueue
+	running bool
 }
 
 func (h *hugoCmd) hugo(cmd *cobra.Command, args []string) error {
+	//h.visitedURLs = types.NewEvictingStringQueue(10)
+	h.running = h.buildWatch
+
+	fmt.Println("hugo - hugo (build) code goes here")
 	return nil
 }
 
