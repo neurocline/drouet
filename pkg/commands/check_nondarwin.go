@@ -1,4 +1,4 @@
-// Copyright 2016 The Hugo Authors. All rights reserved.
+// Copyright 2015 The Hugo Authors. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -11,10 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// commands/globals.go holds all of the globals declared by the commands package.
-// This is because we are deprecating globals, so the Hugo code itself
-// won't refer to these globals, but they exist until third-party
-// packages migrate away from accessing Hugo globals.
+// +build !darwin
 
 package commands
 
@@ -24,10 +21,15 @@ import (
 	"github.com/neurocline/cobra"
 )
 
-// Hugo represents the Hugo sites to build. This variable is exported as it
-// is used by at least one external library (the Hugo caddy plugin). We should
-// provide a cleaner external API, but until then, this is it.
-var Hugo *core.HugoSites
+func buildHugoCheckUlimitCmd(hugo *core.Hugo) *hugoCheckUlimitCmd {
+	return nil
+}
 
-// This needs to die
-var hugoCmdV *cobra.Command
+type hugoCheckUlimitCmd struct {
+	*core.Hugo
+	cmd *cobra.Command
+}
+
+func tweakLimit() {
+	// nothing to do
+}

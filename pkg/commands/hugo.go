@@ -23,7 +23,7 @@ import (
 
 	"github.com/neurocline/drouet/pkg/core"
 
-	"github.com/spf13/cobra"
+	"github.com/neurocline/cobra"
 	"github.com/spf13/nitro"
 	"github.com/spf13/pflag"
 	jww "github.com/spf13/jwalterweatherman"
@@ -71,18 +71,18 @@ func buildCommand(hugo *core.Hugo) *hugoCmd {
 
 	// Add all the sub-commands (sub-commands of sub-commands will add
 	// their own children)
-/*	cmd.AddCommand(buildHugoBenchmarkCmd(hugo).cmd)
+	cmd.AddCommand(buildHugoBenchmarkCmd(hugo).cmd)
 	cmd.AddCommand(buildHugoCheckCmd(hugo).cmd)
 	cmd.AddCommand(buildHugoConfigCmd(hugo).cmd)
 	cmd.AddCommand(buildHugoConvertCmd(hugo).cmd)
 	cmd.AddCommand(buildHugoEnvCmd(hugo).cmd)
-	cmd.AddCommand(buildHugoGenCmd(hugo).cmd)
-	cmd.AddCommand(buildHugoImportCmd(hugo).cmd)
+//	cmd.AddCommand(buildHugoGenCmd(hugo).cmd)
+//	cmd.AddCommand(buildHugoImportCmd(hugo).cmd)
 	cmd.AddCommand(buildHugoListCmd(hugo).cmd)
-	cmd.AddCommand(buildHugoNewCmd(hugo).cmd)
-	cmd.AddCommand(buildHugoReleaseCmd(hugo).cmd)
-	cmd.AddCommand(buildHugoServerCmd(hugo).cmd)
-	cmd.AddCommand(buildHugoVersionCmd(hugo).cmd)*/
+//	cmd.AddCommand(buildHugoNewCmd(hugo).cmd)
+//	cmd.AddCommand(buildHugoReleaseCmd(hugo).cmd)
+//	cmd.AddCommand(buildHugoServerCmd(hugo).cmd)
+	cmd.AddCommand(buildHugoVersionCmd(hugo).cmd)
 
 	// Add global flags apply to all commands
 	cmd.PersistentFlags().Bool("debug", false, "debug output")
@@ -174,6 +174,7 @@ func buildHugoCommand(hugo *core.Hugo) *hugoCmd {
 
 	h.cmd = &cobra.Command{
 		Use:   "hugo",
+		Args:  cobra.NoArgs,
 		Short: "hugo builds your site",
 		Long: `hugo is the main command, used to build your Hugo site.
 

@@ -25,8 +25,15 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/neurocline/cobra"
 	jww "github.com/spf13/jwalterweatherman"
 )
+
+// InitializeConfig creates a default config and then updates it with
+// values from a config file and from command-line flags.
+func (h *Hugo) InitializeConfig(cmd *cobra.Command) error {
+	return nil
+}
 
 // ----------------------------------------------------------------------------------------------
 
