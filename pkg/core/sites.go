@@ -43,7 +43,7 @@ type Hugo struct {
 	sites HugoSites
 
 	Log *jww.Notepad
-	Config *viper.Viper
+	Config *viper.Viper // this is Config *config.Provider in Hugo
 	Fs afero.Fs
 }
 

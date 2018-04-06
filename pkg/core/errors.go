@@ -16,6 +16,8 @@ package core
 import (
 	"fmt"
 	"regexp"
+
+	jww "github.com/spf13/jwalterweatherman"
 )
 
 // ----------------------------------------------------------------------------------------------
@@ -72,4 +74,18 @@ func Deprecated(object, item, alternative string, err bool) {
 		// Make sure the users see this while avoiding build breakage. This will not lead to an os.Exit(-1)
 		DistinctFeedbackLog.Printf("WARNING: %s's %s is deprecated and will be removed in a future release. %s", object, item, alternative)
 	}
+}
+
+func CheckErr(logger *jww.Notepad, err error, s ...string) {
+	if err == nil {
+		return
+	}
+	if len(s) == 0 {
+		logger.CRITICAL.Println(err)
+		return
+	}
+	for _, message := range s {
+		logger.ERROR.Println(message)
+	}
+	logger.ERROR.Println(err)
 }
