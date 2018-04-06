@@ -76,12 +76,12 @@ func buildCommand(hugo *core.Hugo) *hugoCmd {
 	cmd.AddCommand(buildHugoConfigCmd(hugo).cmd)
 	cmd.AddCommand(buildHugoConvertCmd(hugo).cmd)
 	cmd.AddCommand(buildHugoEnvCmd(hugo).cmd)
-//	cmd.AddCommand(buildHugoGenCmd(hugo).cmd)
-//	cmd.AddCommand(buildHugoImportCmd(hugo).cmd)
+	cmd.AddCommand(buildHugoGenCmd(hugo).cmd)
+	cmd.AddCommand(buildHugoImportCmd(hugo).cmd)
 	cmd.AddCommand(buildHugoListCmd(hugo).cmd)
-//	cmd.AddCommand(buildHugoNewCmd(hugo).cmd)
-//	cmd.AddCommand(buildHugoReleaseCmd(hugo).cmd)
-//	cmd.AddCommand(buildHugoServerCmd(hugo).cmd)
+	cmd.AddCommand(buildHugoNewCmd(hugo).cmd)
+	cmd.AddCommand(buildHugoReleaseCmd(hugo).cmd)
+	cmd.AddCommand(buildHugoServerCmd(hugo).cmd)
 	cmd.AddCommand(buildHugoVersionCmd(hugo).cmd)
 
 	// Add global flags apply to all commands

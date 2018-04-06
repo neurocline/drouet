@@ -11,3 +11,4 @@
 - moved `main.go`.
 - moved `commands.Execute()`, `Hugo` global, top-level `HugoCmd`, and some small related code like versioning and the build globals.
 - moved "hugo benchmark", "hugo check", "hugo config", "hugo convert", "hugo env", "hugo list", "hugo version", as well as stub for config and parser
+- moved "hugo gen", "hugo import", "hugo new", "hugo release", "hugo server", and stub code
