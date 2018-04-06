@@ -11,23 +11,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// commands/globals.go holds all of the globals declared by the commands package.
+// core/globals.go holds all of the globals declared by the core package.
 // This is because we are deprecating globals, so the Hugo code itself
 // won't refer to these globals, but they exist until third-party
 // packages migrate away from accessing Hugo globals.
 
-package commands
+package core
 
-import (
-	"github.com/neurocline/drouet/pkg/core"
+// This is a rare legitimate use of program globals - we use -ldflags
+// to set the values of these at build time. So consider these constants
+// instead of variables. These are set by "mage install", the makefile
+// used to build Hugo.
 
-	"github.com/spf13/cobra"
+var (
+	// CommitHash contains the current Git revision.
+	CommitHash string
+
+	// BuildDate contains the date of the current build.
+	BuildDate string
 )
 
-// Hugo represents the Hugo sites to build. This variable is exported as it
-// is used by at least one external library (the Hugo caddy plugin). We should
-// provide a cleaner external API, but until then, this is it.
-var Hugo *core.HugoSites
-
-// This needs to die
-var hugoCmdV *cobra.Command
+// CurrentHugoVersion represents the current build version.
+// This is a global for convenience.
+var CurrentHugoVersion = HugoVersion{
+	Number:     0.39,
+	PatchLevel: 0,
+	Suffix:     "-DEV",
+}

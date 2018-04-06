@@ -14,10 +14,41 @@
 package core
 
 import (
+
+	"io/ioutil"
+	"os"
+
+	"github.com/neurocline/viper"
+
+	"github.com/spf13/afero"
 	jww "github.com/spf13/jwalterweatherman"
 )
 
+// NewHugo creates an instance of the top-level state for Hugo operation.
+// Many fields of this are refined after initial creation (e.g. logging
+// is immediately initialized but only at a critical level and could be
+// updated once config is parsed).
+func NewHugo() *Hugo {
+
+	// Create an initial logger (this will be replaced once config is parsed)
+	startupLogger := jww.NewNotepad(jww.LevelError, jww.LevelError, os.Stdout, ioutil.Discard, "", 0)
+
+	return &Hugo{
+		Log: startupLogger,
+	}
+}
+
+// Hugo is the main object; it contains default behavior
+type Hugo struct {
+	sites HugoSites
+
+	Log *jww.Notepad
+	Config *viper.Viper
+	Fs afero.Fs
+}
+
 // HugoSites represents the sites to build. Each site represents a language.
+// There is usually just one of these, since it is itself a list of sites.
 type HugoSites struct {
 	Log *jww.Notepad
 }
