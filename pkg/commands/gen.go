@@ -24,8 +24,8 @@ import (
 )
 
 // Build "hugo env" command.
-func buildHugoGenCmd(hugo *core.Hugo) *hugoGenCmd {
-	h := &hugoGenCmd{Hugo: hugo}
+func buildHugoGenCmd(hugo *commandeer) *hugoGenCmd {
+	h := &hugoGenCmd{c: hugo}
 
 	h.cmd = &cobra.Command{
 		Use:   "gen",
@@ -44,8 +44,8 @@ func buildHugoGenCmd(hugo *core.Hugo) *hugoGenCmd {
 
 // Note - this only makes sense for Unix-like systems (Linux and Mac)
 // and probably should be skipped for Windows
-func buildHugoGenAutocompleteCmd(hugo *core.Hugo) *hugoGenAutocompleteCmd {
-	h := &hugoGenAutocompleteCmd{Hugo: hugo}
+func buildHugoGenAutocompleteCmd(hugo *commandeer) *hugoGenAutocompleteCmd {
+	h := &hugoGenAutocompleteCmd{c: hugo}
 
 	h.cmd = &cobra.Command{
 		Use:   "autocomplete",
@@ -80,8 +80,8 @@ or just source them in directly:
 	return h
 }
 
-func buildHugoGenDocCmd(hugo *core.Hugo) *hugoGenDocCmd {
-	h := &hugoGenDocCmd{Hugo: hugo}
+func buildHugoGenDocCmd(hugo *commandeer) *hugoGenDocCmd {
+	h := &hugoGenDocCmd{c: hugo}
 
 	h.cmd = &cobra.Command{
 		Use:   "doc",
@@ -104,8 +104,8 @@ for rendering in Hugo.`,
 	return h
 }
 
-func buildHugoGenManCmd(hugo *core.Hugo) *hugoGenManCmd {
-	h := &hugoGenManCmd{Hugo: hugo}
+func buildHugoGenManCmd(hugo *commandeer) *hugoGenManCmd {
+	h := &hugoGenManCmd{c: hugo}
 
 	h.cmd = &cobra.Command{
 		Use:   "man",
@@ -124,8 +124,8 @@ in the "man" directory under the current directory.`,
 	return h
 }
 
-func buildHugoGenDocsHelperCmd(hugo *core.Hugo) *hugoGenDocsHelperCmd {
-	h := &hugoGenDocsHelperCmd{Hugo: hugo}
+func buildHugoGenDocsHelperCmd(hugo *commandeer) *hugoGenDocsHelperCmd {
+	h := &hugoGenDocsHelperCmd{c: hugo}
 
 	h.cmd = &cobra.Command{
 		Use:    "docshelper",
@@ -141,8 +141,8 @@ func buildHugoGenDocsHelperCmd(hugo *core.Hugo) *hugoGenDocsHelperCmd {
 	return h
 }
 
-func buildHugoGenChromaStyles(hugo *core.Hugo) *hugoGenChromaStylesCmd {
-	h := &hugoGenChromaStylesCmd{Hugo: hugo}
+func buildHugoGenChromaStyles(hugo *commandeer) *hugoGenChromaStylesCmd {
+	h := &hugoGenChromaStylesCmd{c: hugo}
 
 	h.cmd = &cobra.Command{
 		Use:   "chromastyles",
@@ -166,12 +166,12 @@ See https://help.farbox.com/pygments.html for preview of available styles`,
 // ----------------------------------------------------------------------------------------------
 
 type hugoGenCmd struct {
-	*core.Hugo
+	c *commandeer
 	cmd *cobra.Command
 }
 
 type hugoGenAutocompleteCmd struct {
-	*core.Hugo
+	c *commandeer
 	cmd *cobra.Command
 
 	// Where to write the completion file
@@ -198,7 +198,7 @@ func (h *hugoGenAutocompleteCmd) genAutocomplete(cmd *cobra.Command, args []stri
 }
 
 type hugoGenDocCmd struct {
-	*core.Hugo
+	c *commandeer
 	cmd *cobra.Command
 
 	gendocdir string
@@ -216,7 +216,7 @@ url: %s
 }
 
 type hugoGenManCmd struct {
-	*core.Hugo
+	c *commandeer
 	cmd *cobra.Command
 
 	genmandir string
@@ -228,7 +228,7 @@ func (h *hugoGenManCmd) genMan(cmd *cobra.Command, args []string) error {
 }
 
 type hugoGenDocsHelperCmd struct {
-	*core.Hugo
+	c *commandeer
 	cmd    *cobra.Command
 
 	target string
@@ -239,7 +239,7 @@ func (h *hugoGenDocsHelperCmd) generate(cmd *cobra.Command, args []string) error
 }
 
 type hugoGenChromaStylesCmd struct {
-	*core.Hugo
+	c *commandeer
 	cmd            *cobra.Command
 
 	style          string

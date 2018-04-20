@@ -19,7 +19,7 @@
 package commands
 
 import (
-	"github.com/neurocline/drouet/pkg/core"
+	"github.com/neurocline/drouet/pkg/hugolib"
 
 	"github.com/neurocline/cobra"
 )
@@ -27,7 +27,7 @@ import (
 // Hugo represents the Hugo sites to build. This variable is exported as it
 // is used by at least one external library (the Hugo caddy plugin). We should
 // provide a cleaner external API, but until then, this is it.
-var Hugo *core.HugoSites
+var Hugo *hugolib.HugoSites
 
 // This needs to die
 var hugoCmdV *cobra.Command

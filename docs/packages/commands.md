@@ -48,7 +48,7 @@ looks like this.
 ```go
 
 // Build Hugo root command.
-func buildHugoCommand(hugo *core.Hugo) *hugoCmd {
+func buildHugoCommand(hugo *commandeer) *hugoCmd {
     h := &hugoCmd{Hugo: hugo}
 
     h.cmd = &cobra.Command{
@@ -68,7 +68,7 @@ func buildHugoCommand(hugo *core.Hugo) *hugoCmd {
 }
 
 type hugoCmd struct {
-    *core.Hugo
+    *commandeer
     cmd *cobra.Command
 
     renderToMemory bool
@@ -90,6 +90,6 @@ moment:
 - persistent and shared flags aren't mirrored to struct variables
 - mildly repetitive code to set up each command-line object
 
-For top-level persistent variables, we could mirror these to the top-level `*core.Hugo` object;
+For top-level persistent variables, we could mirror these to the top-level `*commandeer` object;
 there is only one of these and it is a parameter to every command-line handler function. For
 now, these are unbound, and must be fetched with a Get call.

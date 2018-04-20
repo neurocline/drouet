@@ -16,14 +16,12 @@ package commands
 import (
 	"fmt"
 
-	"github.com/neurocline/drouet/pkg/core"
-
 	"github.com/neurocline/cobra"
 )
 
 // Build "hugo import" command.
-func buildHugoImportCmd(hugo *core.Hugo) *hugoImportCmd {
-	h := &hugoImportCmd{Hugo: hugo}
+func buildHugoImportCmd(hugo *commandeer) *hugoImportCmd {
+	h := &hugoImportCmd{c: hugo}
 
 	h.cmd = &cobra.Command{
 		Use:   "import",
@@ -40,8 +38,8 @@ Import requires a subcommand, e.g. ` + "`hugo import jekyll <jekyll_root_path> <
 }
 
 // Build "hugo import" command.
-func buildHugoImportJekyllCmd(hugo *core.Hugo) *hugoImportJekyllCmd {
-	h := &hugoImportJekyllCmd{Hugo: hugo}
+func buildHugoImportJekyllCmd(hugo *commandeer) *hugoImportJekyllCmd {
+	h := &hugoImportJekyllCmd{c: hugo}
 
 	h.cmd = &cobra.Command{
 		Use:   "jekyll",
@@ -60,12 +58,12 @@ Import from Jekyll requires two paths, e.g. ` + "`hugo import jekyll <jekyll_roo
 // ----------------------------------------------------------------------------------------------
 
 type hugoImportCmd struct {
-	*core.Hugo
+	c *commandeer
 	cmd *cobra.Command
 }
 
 type hugoImportJekyllCmd struct {
-	*core.Hugo
+	c *commandeer
 	cmd *cobra.Command
 }
 

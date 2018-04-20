@@ -17,16 +17,15 @@ import (
 	"reflect"
 	"sort"
 
-	"github.com/neurocline/drouet/pkg/core"
-	//"github.com/neurocline/viper"
-
 	"github.com/neurocline/cobra"
+	"github.com/neurocline/viper"
+
 	jww "github.com/spf13/jwalterweatherman"
 )
 
 // Build "hugo config" command.
-func buildHugoConfigCmd(hugo *core.Hugo) *hugoConfigCmd {
-	h := &hugoConfigCmd{Hugo: hugo}
+func buildHugoConfigCmd(hugo *commandeer) *hugoConfigCmd {
+	h := &hugoConfigCmd{c: hugo}
 
 	h.cmd = &cobra.Command{
 		Use:   "config",
@@ -45,7 +44,7 @@ func buildHugoConfigCmd(hugo *core.Hugo) *hugoConfigCmd {
 // ----------------------------------------------------------------------------------------------
 
 type hugoConfigCmd struct {
-	*core.Hugo
+	c *commandeer
 	cmd *cobra.Command
 
 	source string
@@ -57,16 +56,16 @@ func (h *hugoConfigCmd) config(cmd *cobra.Command, args []string) error {
 
 	// Load config
 	var err error
-	if err = h.Hugo.InitializeConfig(cmd); err != nil {
+	if err = h.c.InitializeConfig(nil, cmd); err != nil {
 		return err
 	}
 
 	// If we have verbose config, then show config organized by origin
-	if h.Config.GetBool("verbose") {
+	if h.c.Cfg.GetBool("verbose") {
 		return h.verboseConfig()
 	}
 
-	allSettings := h.Config.AllSettings()
+	allSettings := h.c.Cfg.(*viper.Viper).AllSettings()
 
 	var separator string
 	if allSettings["metadataformat"] == "toml" {
@@ -95,8 +94,8 @@ func (h *hugoConfigCmd) config(cmd *cobra.Command, args []string) error {
 func (h *hugoConfigCmd) verboseConfig() error {
 
 	// Show all config organized by origin
-	allSettings := h.Config.AllSettings()
-	allOrigins := h.Config.AllSettingsLevels()
+	allSettings := h.c.Cfg.(*viper.Viper).AllSettings()
+	allOrigins := h.c.Cfg.(*viper.Viper).AllSettingsLevels()
 
 	// Keys set by flags
 	var keysOverride []string

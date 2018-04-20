@@ -1,4 +1,4 @@
-// Copyright 2015 The Hugo Authors. All rights reserved.
+// Copyright 2018 The Hugo Authors. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -11,23 +11,33 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// +build !darwin
-
-package commands
+package hugolib
 
 import (
-	"github.com/neurocline/cobra"
+	"github.com/neurocline/drouet/pkg/source"
 )
 
-func buildHugoCheckUlimitCmd(hugo *commandeer) *hugoCheckUlimitCmd {
-	return nil
+// Stubs for now
+type Page struct {
+	Source
 }
 
-type hugoCheckUlimitCmd struct {
-	c *commandeer
-	cmd *cobra.Command
+func (p *Page) IsDraft() bool {
+	return false
 }
 
-func tweakLimit() {
-	// nothing to do
+func (p *Page) IsFuture() bool {
+	return false
 }
+
+func (p *Page) IsExpired() bool {
+	return false
+}
+
+type Source struct {
+	Frontmatter []byte
+	Content     []byte
+	source.File
+}
+
+type Pages []*Page

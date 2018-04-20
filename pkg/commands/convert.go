@@ -21,8 +21,8 @@ import (
 )
 
 // Build "hugo convert" command.
-func buildHugoConvertCmd(hugo *core.Hugo) *hugoConvertCmd {
-	h := &hugoConvertCmd{Hugo: hugo}
+func buildHugoConvertCmd(hugo *commandeer) *hugoConvertCmd {
+	h := &hugoConvertCmd{c: hugo}
 
 	h.cmd = &cobra.Command{
 		Use:   "convert",
@@ -47,8 +47,8 @@ See convert's subcommands toJSON, toTOML and toYAML for more information.`,
 	return h
 }
 
-func buildHugoConvertToJsonCmd(hugo *core.Hugo) *hugoConvertCmd {
-	h := &hugoConvertCmd{Hugo: hugo}
+func buildHugoConvertToJsonCmd(hugo *commandeer) *hugoConvertCmd {
+	h := &hugoConvertCmd{c: hugo}
 
 	h.cmd = &cobra.Command{
 		Use:   "toJSON",
@@ -61,8 +61,8 @@ to use JSON for the front matter.`,
 	return h
 }
 
-func buildHugoConvertToTomlCmd(hugo *core.Hugo) *hugoConvertCmd {
-	h := &hugoConvertCmd{Hugo: hugo}
+func buildHugoConvertToTomlCmd(hugo *commandeer) *hugoConvertCmd {
+	h := &hugoConvertCmd{c: hugo}
 
 	h.cmd = &cobra.Command{
 		Use:   "toTOML",
@@ -75,8 +75,8 @@ to use TOML for the front matter.`,
 	return h
 }
 
-func buildHugoConvertToYamlCmd(hugo *core.Hugo) *hugoConvertCmd {
-	h := &hugoConvertCmd{Hugo: hugo}
+func buildHugoConvertToYamlCmd(hugo *commandeer) *hugoConvertCmd {
+	h := &hugoConvertCmd{c: hugo}
 
 	h.cmd = &cobra.Command{
 		Use:   "toYAML",
@@ -94,7 +94,7 @@ to use YAML for the front matter.`,
 // All of the "hugo convert" sub-commands share the same set of flags and so
 // share the same command structure
 type hugoConvertCmd struct {
-	*core.Hugo
+	c *commandeer
 	cmd *cobra.Command
 
 	outputDir string
@@ -119,7 +119,7 @@ func (h *hugoConvertCmd) convertContents(mark rune) error {
 		return core.NewUserError("Unsafe operation not allowed, use --unsafe or set a different output path")
 	}
 
-	if err := h.Hugo.InitializeConfig(h.cmd); err != nil {
+	if err := h.c.InitializeConfig(nil, h.cmd); err != nil {
 		return err
 	}
 

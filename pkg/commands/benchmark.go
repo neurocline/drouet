@@ -19,15 +19,13 @@ import (
 	"runtime/pprof"
 	"time"
 
-	"github.com/neurocline/drouet/pkg/core"
-
 	"github.com/neurocline/cobra"
 	jww "github.com/spf13/jwalterweatherman"
 )
 
 // Build "hugo benchmark" command.
-func buildHugoBenchmarkCmd(hugo *core.Hugo) *hugoBenchmarkCmd {
-	h := &hugoBenchmarkCmd{Hugo: hugo}
+func buildHugoBenchmarkCmd(hugo *commandeer) *hugoBenchmarkCmd {
+	h := &hugoBenchmarkCmd{c: hugo}
 
 	h.cmd = &cobra.Command{
 		Use:   "benchmark",
@@ -53,7 +51,7 @@ creating a benchmark.`,
 // ----------------------------------------------------------------------------------------------
 
 type hugoBenchmarkCmd struct {
-	*core.Hugo
+	c *commandeer
 	cmd *cobra.Command
 
 	benchmarkTimes int
@@ -66,7 +64,12 @@ func (h *hugoBenchmarkCmd) benchmark(cmd *cobra.Command, args []string) error {
 	var err error
 
 	// Load config
-	if err = h.Hugo.InitializeConfig(h.cmd); err != nil {
+	cfgInit := func(c *commandeer) error {
+		c.Set("renderToMemory", h.renderToMemory)
+		return nil
+	}
+
+	if err = h.c.InitializeConfig(cfgInit, h.cmd); err != nil {
 		return err
 	}
 
@@ -103,7 +106,7 @@ func (h *hugoBenchmarkCmd) benchmark(cmd *cobra.Command, args []string) error {
 
 	// Build site N times, measuring total elapsed time
 	t := time.Now()
-	//builder := &hugoCmd{Hugo: h.Hugo, cmd: h.cmd, renderToMemory: h.renderToMemory}
+	//builder := &hugoCmd{c: h.c, cmd: h.cmd, renderToMemory: h.renderToMemory}
 	for i := 0; i < h.benchmarkTimes; i++ {
 		//if err = builder.resetAndBuildSites(); err != nil {
 		//	return err

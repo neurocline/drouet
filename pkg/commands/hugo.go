@@ -18,7 +18,7 @@
 package commands
 
 import (
-	"fmt"
+	//"fmt"
 	"runtime"
 
 	"github.com/neurocline/drouet/pkg/core"
@@ -34,7 +34,7 @@ func Execute() int {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
 	// Build our root object and all command processors
-	hugo := core.NewHugo()
+	hugo := newCommandeer()
 	root := buildCommand(hugo)
 
 	// Run the command processor; show usage message if there is an error
@@ -53,7 +53,7 @@ func Execute() int {
 		return -1
 	}
 
-	if hugo.Log.LogCountForLevelsGreaterThanorEqualTo(jww.LevelError) > 0 {
+	if hugo.Logger.LogCountForLevelsGreaterThanorEqualTo(jww.LevelError) > 0 {
 		return -1
 	}
 
@@ -62,7 +62,7 @@ func Execute() int {
 
 // Build the Hugo command - root and all its children
 // (every other command (verb) is attached as a child command)
-func buildCommand(hugo *core.Hugo) *hugoCmd {
+func buildCommand(hugo *commandeer) *hugoCmd {
 
 	// Create a new Hugo object and create the root "hugo" command
 	gohugo := buildHugoCommand(hugo)
@@ -169,8 +169,8 @@ func normalizeHugoFlags(f *pflag.FlagSet, name string) pflag.NormalizedName {
 // ----------------------------------------------------------------------------------------------
 
 // Build Hugo root command.
-func buildHugoCommand(hugo *core.Hugo) *hugoCmd {
-	h := &hugoCmd{Hugo: hugo}
+func buildHugoCommand(hugo *commandeer) *hugoCmd {
+	h := &hugoCmd{c: hugo}
 
 	h.cmd = &cobra.Command{
 		Use:   "hugo",
@@ -198,7 +198,7 @@ Complete documentation is available at http://gohugo.io/.`,
 // ----------------------------------------------------------------------------------------------
 
 type hugoCmd struct {
-	*core.Hugo
+	c *commandeer
 	cmd *cobra.Command
 
 	renderToMemory bool
@@ -208,8 +208,33 @@ type hugoCmd struct {
 }
 
 func (h *hugoCmd) hugo(cmd *cobra.Command, args []string) error {
-	h.running = h.buildWatch
+	cfgInit := func(c *commandeer) error {
+		if h.buildWatch {
+			c.Set("disableLiveReload", true)
+		}
+		c.Set("renderToMemory", h.renderToMemory)
+		return nil
+	}
 
-	fmt.Println("hugo - hugo (build) code goes here")
+	err := h.c.InitializeConfig(cfgInit, h.cmd)
+	if err != nil {
+		return err
+	}
+	h.c.setRunning(h.buildWatch)
+
+	return h.c.build()
+}
+
+func (c *commandeer) build() error {
 	return nil
+}
+
+func (c *commandeer) fullRebuild() {
+	if err := c.loadConfig(); err != nil {
+		jww.ERROR.Println("Failed to reload config:", err)
+	} /*else if err := c.recreateAndBuildSites(true); err != nil {
+		jww.ERROR.Println(err)
+	} else if !buildWatch && !c.Cfg.GetBool("disableLiveReload") {
+		livereload.ForceRefresh()
+	}*/
 }

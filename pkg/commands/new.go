@@ -16,14 +16,12 @@ package commands
 import (
 	"fmt"
 
-	"github.com/neurocline/drouet/pkg/core"
-
 	"github.com/neurocline/cobra"
 )
 
 // Build "hugo new" command.
-func buildHugoNewCmd(hugo *core.Hugo) *hugoNewCmd {
-	h := &hugoNewCmd{Hugo: hugo}
+func buildHugoNewCmd(hugo *commandeer) *hugoNewCmd {
+	h := &hugoNewCmd{c: hugo}
 
 	h.cmd = &cobra.Command{
 		Use:   "new [path]",
@@ -56,8 +54,8 @@ If archetypes are provided in your theme or site, they will be used.`,
 }
 
 // Build "hugo new site" command.
-func buildHugoNewSiteCmd(hugo *core.Hugo) *hugoNewSiteCmd {
-	h := &hugoNewSiteCmd{Hugo: hugo}
+func buildHugoNewSiteCmd(hugo *commandeer) *hugoNewSiteCmd {
+	h := &hugoNewSiteCmd{c: hugo}
 
 	h.cmd = &cobra.Command{
 		Use:   "site [path]",
@@ -75,8 +73,8 @@ Use ` + "`hugo new [contentPath]`" + ` to create new content.`,
 }
 
 // Build "hugo new theme" command.
-func buildHugoNewThemeCmd(hugo *core.Hugo) *hugoNewThemeCmd {
-	h := &hugoNewThemeCmd{Hugo: hugo}
+func buildHugoNewThemeCmd(hugo *commandeer) *hugoNewThemeCmd {
+	h := &hugoNewThemeCmd{c: hugo}
 
 	h.cmd = &cobra.Command{
 		Use:   "theme [name]",
@@ -94,7 +92,7 @@ as you see fit.`,
 // ----------------------------------------------------------------------------------------------
 
 type hugoNewCmd struct {
-	*core.Hugo
+	c *commandeer
 	cmd *cobra.Command
 
 	contentEditor string
@@ -103,12 +101,21 @@ type hugoNewCmd struct {
 }
 
 func (h *hugoNewCmd) newContent(cmd *cobra.Command, args []string) error {
-	fmt.Println("hugo new - hugo new code goes here")
-	return nil
+	cfgInit := func(c *commandeer) error {
+		if h.cmd.Flags().Changed("editor") {
+			h.c.Set("newContentEditor", h.contentEditor)
+		}
+		return nil
+	}
+
+	err := h.c.InitializeConfig(cfgInit, h.cmd)
+
+	// more code
+	return err
 }
 
 type hugoNewSiteCmd struct {
-	*core.Hugo
+	c *commandeer
 	cmd *cobra.Command
 
 	configFormat  string
@@ -121,7 +128,7 @@ func (h *hugoNewSiteCmd) newSite(cmd *cobra.Command, args []string) error {
 }
 
 type hugoNewThemeCmd struct {
-	*core.Hugo
+	c *commandeer
 	cmd *cobra.Command
 
 	// source string

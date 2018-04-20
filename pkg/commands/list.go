@@ -14,16 +14,20 @@
 package commands
 
 import (
-	"fmt"
+	//"fmt"
+	"path/filepath"
 
 	"github.com/neurocline/drouet/pkg/core"
+	"github.com/neurocline/drouet/pkg/hugolib"
 
 	"github.com/neurocline/cobra"
+
+	jww "github.com/spf13/jwalterweatherman"
 )
 
 // Build "hugo list" command.
-func buildHugoListCmd(hugo *core.Hugo) *hugoListCmd {
-	h := &hugoListCmd{Hugo: hugo}
+func buildHugoListCmd(hugo *commandeer) *hugoListCmd {
+	h := &hugoListCmd{c: hugo}
 
 	h.cmd = &cobra.Command{
 		Use:   "list",
@@ -49,8 +53,8 @@ List requires a subcommand, e.g. ` + "`hugo list drafts`.",
 }
 
 // Build "hugo list drafts" command.
-func buildHugoListDraftsCmd(hugo *core.Hugo) *hugoListDraftsCmd {
-	h := &hugoListDraftsCmd{Hugo: hugo}
+func buildHugoListDraftsCmd(hugo *commandeer) *hugoListCmd {
+	h := &hugoListCmd{c: hugo}
 
 	h.cmd = &cobra.Command{
 		Use:   "drafts",
@@ -63,8 +67,8 @@ func buildHugoListDraftsCmd(hugo *core.Hugo) *hugoListDraftsCmd {
 }
 
 // Build "hugo list expired" command.
-func buildHugoListExpiredCmd(hugo *core.Hugo) *hugoListExpiredCmd {
-	h := &hugoListExpiredCmd{Hugo: hugo}
+func buildHugoListExpiredCmd(hugo *commandeer) *hugoListCmd {
+	h := &hugoListCmd{c: hugo}
 
 	h.cmd = &cobra.Command{
 		Use:   "expired",
@@ -78,8 +82,8 @@ expired.`,
 }
 
 // Build "hugo list future" command.
-func buildHugoListFutureCmd(hugo *core.Hugo) *hugoListFutureCmd {
-	h := &hugoListFutureCmd{Hugo: hugo}
+func buildHugoListFutureCmd(hugo *commandeer) *hugoListCmd {
+	h := &hugoListCmd{c: hugo}
 
 	h.cmd = &cobra.Command{
 		Use:   "future",
@@ -95,36 +99,56 @@ posted in the future.`,
 // ----------------------------------------------------------------------------------------------
 
 type hugoListCmd struct {
-	*core.Hugo
+	c *commandeer
 	cmd *cobra.Command
 }
 
-type hugoListDraftsCmd struct {
-	*core.Hugo
-	cmd *cobra.Command
+func (h *hugoListCmd) listDrafts(cmd *cobra.Command, args []string) error {
+	cfgInit := func(c *commandeer) error {
+		c.Set("buildDrafts", true)
+		return nil
+	}
+	return h.listContent(cfgInit, (*hugolib.Page).IsDraft)
 }
 
-func (h *hugoListDraftsCmd) listDrafts(cmd *cobra.Command, args []string) error {
-	fmt.Println("hugo list drafts - hugo list drafts code goes here")
-	return nil
+func (h *hugoListCmd) listExpired(cmd *cobra.Command, args []string) error {
+	cfgInit := func(c *commandeer) error {
+		c.Set("buildExpired", true)
+		return nil
+	}
+	return h.listContent(cfgInit, (*hugolib.Page).IsExpired)
 }
 
-type hugoListExpiredCmd struct {
-	*core.Hugo
-	cmd *cobra.Command
+func (h *hugoListCmd) listFuture(cmd *cobra.Command, args []string) error {
+	cfgInit := func(c *commandeer) error {
+		c.Set("buildFuture", true)
+		return nil
+	}
+	return h.listContent(cfgInit, (*hugolib.Page).IsFuture)
 }
 
-func (h *hugoListExpiredCmd) listExpired(cmd *cobra.Command, args []string) error {
-	fmt.Println("hugo list expired - hugo list expired code goes here")
-	return nil
-}
+func (h *hugoListCmd) listContent(cb func(c *commandeer) error, isType func(p *hugolib.Page) bool) error {
 
-type hugoListFutureCmd struct {
-	*core.Hugo
-	cmd *cobra.Command
-}
+	err := h.c.InitializeConfig(cb, h.cmd)
+	if err != nil {
+		return err
+	}
 
-func (h *hugoListFutureCmd) listFuture(cmd *cobra.Command, args []string) error {
-	fmt.Println("hugo list future - hugo list future code goes here")
+	sites, err := hugolib.NewHugoSites(*h.c.HugoBaseConfig)
+
+	if err != nil {
+		return core.NewSystemError("Error creating sites", err)
+	}
+
+	if err := sites.Build(hugolib.BuildCfg{SkipRender: true}); err != nil {
+		return core.NewSystemError("Error Processing Source Content", err)
+	}
+
+	for _, p := range sites.Pages() {
+		if isType(p) {
+			jww.FEEDBACK.Println(filepath.Join(p.File.Dir(), p.File.LogicalName()))
+		}
+	}
+
 	return nil
 }

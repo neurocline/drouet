@@ -1,4 +1,4 @@
-// Copyright 2015 The Hugo Authors. All rights reserved.
+// Copyright 2017-present The Hugo Authors. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -11,23 +11,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// +build !darwin
+package core
 
-package commands
-
-import (
-	"github.com/neurocline/cobra"
-)
-
-func buildHugoCheckUlimitCmd(hugo *commandeer) *hugoCheckUlimitCmd {
-	return nil
-}
-
-type hugoCheckUlimitCmd struct {
-	c *commandeer
-	cmd *cobra.Command
-}
-
-func tweakLimit() {
-	// nothing to do
+// ConfigProvider provides the configuration settings for Hugo.
+type ConfigProvider interface {
+	GetString(key string) string
+	GetInt(key string) int
+	GetBool(key string) bool
+	GetStringMap(key string) map[string]interface{}
+	GetStringMapString(key string) map[string]string
+	GetStringSlice(key string) []string
+	Get(key string) interface{}
+	Set(key string, value interface{})
+	IsSet(key string) bool
 }

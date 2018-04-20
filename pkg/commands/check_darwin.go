@@ -16,14 +16,12 @@ package commands
 import (
 	"syscall"
 
-	"github.com/neurocline/drouet/pkg/core"
-
 	"github.com/neurocline/cobra"
 	jww "github.com/spf13/jwalterweatherman"
 )
 
-func buildHugoCheckUlimitCmd(hugo *core.Hugo) *hugoCheckUlimitCmd {
-	h := &hugoBenchmarkCmd{Hugo: hugo}
+func buildHugoCheckUlimitCmd(hugo *commandeer) *hugoCheckUlimitCmd {
+	h := &hugoBenchmarkCmd{c: hugo}
 
 	h.cmd = &cobra.Command{
 		Use:   "ulimit",
@@ -39,7 +37,7 @@ This is primarily to ensure that Hugo can watch enough files on some OSs`,
 // ----------------------------------------------------------------------------------------------
 
 type hugoCheckUlimitCmd struct {
-	*core.Hugo
+	c *commandeer
 	cmd *cobra.Command
 }
 

@@ -22,22 +22,97 @@ package core
 
 import (
 	"fmt"
-	"io/ioutil"
-	"log"
-	"os"
-	"path/filepath"
+	//"io/ioutil"
+	//"log"
+	//"os"
+	//"path/filepath"
 	"strings"
 	"sync"
 
 	"github.com/neurocline/drouet/pkg/hugofs"
 
-	"github.com/neurocline/cobra"
-	"github.com/neurocline/viper"
+	//"github.com/neurocline/cobra"
+	//"github.com/neurocline/viper"
 
-	"github.com/spf13/afero"
+	//"github.com/spf13/afero"
 	jww "github.com/spf13/jwalterweatherman"
 )
 
+// Previously known as DepsCfg
+// HugoBaseConfig contains configuration options that can be used to configure Hugo
+// on a global level, i.e. logging etc.
+// Nil values will be given default values.
+type HugoBaseConfig struct {
+
+	// The Logger to use.
+	Logger *jww.Notepad
+
+	// The file systems to use
+	Fs *hugofs.Fs
+
+	// The language to use.
+//	Language *helpers.Language
+
+	// The configuration to use.
+	Cfg ConfigProvider
+
+	// Template handling.
+//	TemplateProvider ResourceProvider
+//	WithTemplate     func(templ tpl.TemplateHandler) error
+
+	// i18n handling.
+//	TranslationProvider ResourceProvider
+
+	// Whether we are in running (server) mode
+	// (this is only here because of hugolib.newHugoSites)
+	Running bool
+}
+
+// Previously known as Deps
+// HugoSiteConfig holds dependencies used by many.
+// There will be normally only one instance of deps in play
+// at a given time, i.e. one per Site built.
+type HugoSiteConfig struct {
+	// The logger to use.
+	Log *jww.Notepad `json:"-"`
+
+	// The templates to use. This will usually implement the full tpl.TemplateHandler.
+//	Tmpl tpl.TemplateFinder `json:"-"`
+
+	// The file systems to use.
+	Fs *hugofs.Fs `json:"-"`
+
+	// The PathSpec to use
+//	*helpers.PathSpec `json:"-"`
+
+	// The ContentSpec to use
+//	*helpers.ContentSpec `json:"-"`
+
+	// The SourceSpec to use
+//	SourceSpec *source.SourceSpec `json:"-"`
+
+	// The configuration to use
+	Cfg ConfigProvider `json:"-"`
+
+	// The translation func to use
+	Translate func(translationID string, args ...interface{}) string `json:"-"`
+
+//	Language *helpers.Language
+
+	// All the output formats available for the current site.
+//	OutputFormatsConfig output.Formats
+
+//	templateProvider ResourceProvider
+//	WithTemplate     func(templ tpl.TemplateHandler) error `json:"-"`
+
+//	translationProvider ResourceProvider
+
+//	Metrics metrics.Provider
+}
+
+// ----------------------------------------------------------------------------------------------
+
+/*
 // InitializeConfig creates a default config and then updates it with
 // values from a config file and from command-line flags.
 func (h *Hugo) InitializeConfig(cmd *cobra.Command) error {
@@ -274,75 +349,9 @@ func defaultSettings(v *viper.Viper) error {
 
 	return nil
 }
+*/
 
 // ----------------------------------------------------------------------------------------------
-
-func (h *Hugo) createLogger() error {
-	var (
-		logHandle       = ioutil.Discard
-		logFile         = h.Config.GetString("logFile")
-		verboseLog      = h.Config.GetBool("verboseLog")
-		logging         = h.Config.GetBool("log")
-		isLogging       = false
-	)
-
-	// Create a logfile if asked for directly or implicitly
-	var err error
-	if logFile != "" {
-		isLogging = true
-		logHandle, err = os.OpenFile(logFile, os.O_RDWR|os.O_APPEND|os.O_CREATE, 0666)
-		if err != nil {
-			return NewSystemError("Failed to open log file:", logFile, err)
-		}
-	} else if verboseLog || logging {
-		isLogging = true
-		logHandle, err = ioutil.TempFile("", "hugo")
-		if err != nil {
-			return NewSystemError(err)
-		}
-	}
-
-	// Set the appropriate logging level for console output
-	// must do --verbose --debug to get debug console out when logging
-	// must do --verbose --trace to get trace console out when logging
-	var verbose = h.Config.GetBool("verbose")
-	var trace = h.Config.GetBool("trace")
-	var debug = h.Config.GetBool("debug")
-	var quiet = h.Config.GetBool("quiet")
-
-	var stdoutThreshold = jww.LevelError
-	switch {
-	case quiet:
-	case (!isLogging || verbose) && trace:
-		stdoutThreshold = jww.LevelTrace
-	case (!isLogging || verbose) && debug:
-		stdoutThreshold = jww.LevelDebug
-	case verbose:
-		stdoutThreshold = jww.LevelInfo
-	}
-
-	// Set the appropriate logging level for file output (quiet is ignored here)
-	// Note 1: verboseLog should be round-tripped to config so it can be set in config
-	// Note 2: log vs logging should be resolved so it can round-trip to config
-	var logThreshold = jww.LevelWarn
-	switch {
-	case verboseLog && trace:
-		logThreshold = jww.LevelTrace
-	case verboseLog && debug:
-		logThreshold = jww.LevelDebug
-	case verboseLog:
-		logThreshold = jww.LevelInfo
-	}
-
-	// The global logger is used in some few cases.
-	jww.SetLogOutput(logHandle)
-	jww.SetLogThreshold(logThreshold)
-	jww.SetStdoutThreshold(stdoutThreshold)
-	InitDistinctLoggers()
-
-	h.Log = jww.NewNotepad(stdoutThreshold, logThreshold, os.Stdout, logHandle, "", log.Ldate|log.Ltime)
-	return nil
-}
 
 // InitLoggers sets up the global distinct loggers.
 func InitDistinctLoggers() {

@@ -19,15 +19,13 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/neurocline/drouet/pkg/core"
-
 	"github.com/neurocline/cobra"
 	"github.com/spf13/viper"
 )
 
 // Build "hugo server" command.
-func buildHugoServerCmd(hugo *core.Hugo) *hugoServerCmd {
-	h := &hugoServerCmd{Hugo: hugo}
+func buildHugoServerCmd(hugo *commandeer) *hugoServerCmd {
+	h := &hugoServerCmd{c: hugo}
 
 	h.cmd = &cobra.Command{
 		Use:     "server",
@@ -71,7 +69,7 @@ of a second, you will be able to save and see your changes nearly instantly.`,
 // ----------------------------------------------------------------------------------------------
 
 type hugoServerCmd struct {
-	*core.Hugo
+	c *commandeer
 	cmd *cobra.Command
 
 	disableFastRender bool
@@ -90,11 +88,19 @@ type hugoServerCmd struct {
 }
 
 func (h *hugoServerCmd) server(cmd *cobra.Command, args []string) error {
-	//h.visitedURLs = types.NewEvictingStringQueue(10)
-	h.running = true // servers are always in running mode
+	// stuff
 
-	fmt.Println("hugo server - hugo server code goes here")
-	return nil
+	cfgInit := func(c *commandeer) error {
+		// lots of stuff
+		return nil
+	}
+
+	err := h.c.InitializeConfig(cfgInit, h.cmd)
+	h.c.setRunning(true)
+
+	// more stuff
+
+	return err
 }
 
 // fixURL massages the baseURL into a form needed for serving

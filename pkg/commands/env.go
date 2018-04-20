@@ -16,15 +16,13 @@ package commands
 import (
 	"runtime"
 
-	"github.com/neurocline/drouet/pkg/core"
-
 	"github.com/neurocline/cobra"
 	jww "github.com/spf13/jwalterweatherman"
 )
 
 // Build "hugo env" command.
-func buildHugoEnvCmd(hugo *core.Hugo) *hugoEnvCmd {
-	h := &hugoEnvCmd{Hugo: hugo}
+func buildHugoEnvCmd(hugo *commandeer) *hugoEnvCmd {
+	h := &hugoEnvCmd{c: hugo}
 
 	h.cmd = &cobra.Command{
 		Use:   "env",
@@ -39,12 +37,12 @@ func buildHugoEnvCmd(hugo *core.Hugo) *hugoEnvCmd {
 // ----------------------------------------------------------------------------------------------
 
 type hugoEnvCmd struct {
-	*core.Hugo
+	c *commandeer
 	cmd *cobra.Command
 }
 
 func (h *hugoEnvCmd) env(cmd *cobra.Command, args []string) error {
-	showVersion(h.Hugo.Log)
+	showVersion(h.c.Logger)
 	jww.FEEDBACK.Printf("GOOS=%q\n", runtime.GOOS)
 	jww.FEEDBACK.Printf("GOARCH=%q\n", runtime.GOARCH)
 	jww.FEEDBACK.Printf("GOVERSION=%q\n", runtime.Version())

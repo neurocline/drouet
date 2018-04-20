@@ -1,4 +1,4 @@
-// Copyright 2015 The Hugo Authors. All rights reserved.
+// Copyright 2017-present The Hugo Authors. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -11,23 +11,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// +build !darwin
-
-package commands
+package source
 
 import (
-	"github.com/neurocline/cobra"
+	//"os"
+	//"path/filepath"
+	"regexp"
+
+	//"github.com/neurocline/drouet/core"
+
+	"github.com/spf13/afero"
+	//"github.com/spf13/cast"
 )
 
-func buildHugoCheckUlimitCmd(hugo *commandeer) *hugoCheckUlimitCmd {
-	return nil
-}
+// SourceSpec abstracts language-specific file creation.
+// TODO(bep) rename to Spec
+type SourceSpec struct {
+	//*helpers.PathSpec
 
-type hugoCheckUlimitCmd struct {
-	c *commandeer
-	cmd *cobra.Command
-}
+	Fs afero.Fs
 
-func tweakLimit() {
-	// nothing to do
+	// This is set if the ignoreFiles config is set.
+	ignoreFilesRe []*regexp.Regexp
+
+	Languages              map[string]interface{}
+	DefaultContentLanguage string
+	DisabledLanguages      map[string]bool
 }

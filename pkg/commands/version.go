@@ -25,8 +25,8 @@ import (
 )
 
 // Build "hugo version" command.
-func buildHugoVersionCmd(hugo *core.Hugo) *hugoVersionCmd {
-	h := &hugoVersionCmd{Hugo: hugo}
+func buildHugoVersionCmd(hugo *commandeer) *hugoVersionCmd {
+	h := &hugoVersionCmd{c: hugo}
 
 	h.cmd = &cobra.Command{
 		Use:   "version",
@@ -41,12 +41,12 @@ func buildHugoVersionCmd(hugo *core.Hugo) *hugoVersionCmd {
 // ----------------------------------------------------------------------------------------------
 
 type hugoVersionCmd struct {
-	*core.Hugo
+	c *commandeer
 	cmd *cobra.Command
 }
 
 func (h *hugoVersionCmd) version(cmd *cobra.Command, args []string) error {
-	showVersion(h.Hugo.Log)
+	showVersion(h.c.Logger)
 	return nil
 }
 

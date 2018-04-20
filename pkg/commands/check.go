@@ -14,13 +14,12 @@
 package commands
 
 import (
-	"github.com/neurocline/drouet/pkg/core"
 	"github.com/neurocline/cobra"
 )
 
 // Build "hugo check" command.
-func buildHugoCheckCmd(hugo *core.Hugo) *hugoCheckCmd {
-	h := &hugoCheckCmd{Hugo: hugo}
+func buildHugoCheckCmd(hugo *commandeer) *hugoCheckCmd {
+	h := &hugoCheckCmd{c: hugo}
 
 	h.cmd = &cobra.Command{
 		Use:   "check",
@@ -40,7 +39,7 @@ func buildHugoCheckCmd(hugo *core.Hugo) *hugoCheckCmd {
 // ----------------------------------------------------------------------------------------------
 
 type hugoCheckCmd struct {
-	*core.Hugo
+	c *commandeer
 	cmd *cobra.Command
 }
 

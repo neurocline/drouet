@@ -16,7 +16,6 @@ package commands
 import (
 	"errors"
 
-	"github.com/neurocline/drouet/pkg/core"
 	"github.com/neurocline/drouet/pkg/releaser"
 
 	"github.com/neurocline/cobra"
@@ -25,8 +24,8 @@ import (
 // Build "hugo release" command.
 // Note: This is a command only meant for internal use and must be run
 // via "go run -tags release main.go release" on the actual code base that is in the release.
-func buildHugoReleaseCmd(hugo *core.Hugo) *hugoReleaseCmd {
-	h := &hugoReleaseCmd{Hugo: hugo}
+func buildHugoReleaseCmd(hugo *commandeer) *hugoReleaseCmd {
+	h := &hugoReleaseCmd{c: hugo}
 
 	h.cmd = &cobra.Command{
 		Use:    "release",
@@ -45,7 +44,7 @@ func buildHugoReleaseCmd(hugo *core.Hugo) *hugoReleaseCmd {
 // ----------------------------------------------------------------------------------------------
 
 type hugoReleaseCmd struct {
-	*core.Hugo
+	c *commandeer
 	cmd *cobra.Command
 
 	version string
