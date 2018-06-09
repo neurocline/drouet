@@ -1,4 +1,4 @@
-// Copyright 2015 The Hugo Authors. All rights reserved.
+// Copyright 2016-present The Hugo Authors. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -11,25 +11,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package hugolib
 
-import (
-	"os"
-	"runtime"
-
-	"github.com/neurocline/drouet/pkg/commands"
-)
-
-func main() {
-	runtime.GOMAXPROCS(runtime.NumCPU())
-
-	resp := commands.Execute(os.Args[1:])
-
-	if resp.Err != nil {
-		if resp.IsUserError() {
-			resp.Cmd.Println("")
-			resp.Cmd.Println(resp.Cmd.UsageString())
-		}
-		os.Exit(-1)
-	}
+// HugoSites represents the sites to build. Each site represents a language.
+type HugoSites struct {
+	// If this is running in the dev server.
+	running bool
 }
